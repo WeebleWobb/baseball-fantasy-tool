@@ -6,6 +6,14 @@ export function useYahooFantasy() {
   const { data: session } = useSession();
   const api = session?.accessToken ? new YahooFantasyAPI(session.accessToken) : null;
 
+  const useUserInfo = () => {
+    return useQuery({
+      queryKey: ['user-info'],
+      queryFn: () => api?.getUserInfo(),
+      enabled: !!api,
+    });
+  };
+
   const usePlayers = (start: number = 0, count: number = 25) => {
     return useQuery({
       queryKey: ['players', start, count],
@@ -31,6 +39,7 @@ export function useYahooFantasy() {
   };
 
   return {
+    useUserInfo,
     usePlayers,
     usePlayerStats,
     usePlayerComparison,

@@ -49,7 +49,8 @@ export const authOptions: NextAuthOptions = {
         url: "https://api.login.yahoo.com/oauth2/request_auth",
         params: {
           response_type: "code",
-          scope: "openid fspt-r"
+          scope: "openid fspt-r",
+          prompt: "login"
         },
       },
       token: {
@@ -123,13 +124,33 @@ export const authOptions: NextAuthOptions = {
       return session;
     },
   },
-  pages: {
-    signIn: "/auth/signin",
-    error: "/auth/error",
-  },
   session: {
     strategy: "jwt",
   },
+  pages: {
+    error: "/auth/error",
+  },
+  events: {
+    async signOut({ token }: { token: JWT | null }) {
+      // Revoke Yahoo session
+      if (token?.accessToken) {
+        try {
+          await fetch("https://api.login.yahoo.com/oauth2/revoke", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/x-www-form-urlencoded",
+              Authorization: `Basic ${Buffer.from(`${process.env.YAHOO_CLIENT_ID}:${process.env.YAHOO_CLIENT_SECRET}`).toString("base64")}`,
+            },
+            body: new URLSearchParams({
+              token: token.accessToken as string,
+            }),
+          });
+        } catch (error) {
+          console.error("Error revoking Yahoo token:", error);
+        }
+      }
+    }
+  }
 };
 
 const handler = NextAuth(authOptions);
