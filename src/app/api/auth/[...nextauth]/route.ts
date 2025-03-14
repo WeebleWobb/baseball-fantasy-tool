@@ -19,11 +19,25 @@ interface YahooIdToken {
   iat: number;
 }
 
+interface YahooTokens {
+  access_token: string;
+  refresh_token?: string;
+  expires_in: number;
+}
+
+interface ExtendedSession extends DefaultSession {
+  accessToken?: string;
+  refreshToken?: string;
+  expiresAt?: number;
+  error?: "RefreshAccessTokenError";
+}
+
 declare module "next-auth" {
-  interface Session extends DefaultSession {
+  interface Session {
     accessToken?: string;
     refreshToken?: string;
     expiresAt?: number;
+    error?: "RefreshAccessTokenError";
   }
 }
 
@@ -107,16 +121,54 @@ export const authOptions: NextAuthOptions = {
     } as OAuthConfig<YahooProfile>,
   ],
   callbacks: {
-    async jwt({ token, account }: { token: JWT; account: any }) {
+    async jwt({ token, account }) {
       // Persist the OAuth access_token and refresh_token to the token right after signin
       if (account) {
         token.accessToken = account.access_token;
         token.refreshToken = account.refresh_token;
         token.expiresAt = account.expires_at;
       }
+
+      // Return previous token if the access token has not expired yet
+      if (token.expiresAt && Date.now() < token.expiresAt * 1000) {
+        return token;
+      }
+
+      // Access token has expired, try to refresh it
+      if (token.refreshToken) {
+        try {
+          const response = await fetch("https://api.login.yahoo.com/oauth2/get_token", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/x-www-form-urlencoded",
+              Authorization: `Basic ${Buffer.from(`${process.env.YAHOO_CLIENT_ID}:${process.env.YAHOO_CLIENT_SECRET}`).toString("base64")}`,
+            },
+            body: new URLSearchParams({
+              grant_type: "refresh_token",
+              refresh_token: token.refreshToken,
+            }),
+          });
+
+          const tokens = await response.json() as YahooTokens;
+
+          if (!response.ok) throw tokens;
+
+          return {
+            ...token,
+            accessToken: tokens.access_token,
+            refreshToken: tokens.refresh_token ?? token.refreshToken,
+            expiresAt: Math.floor(Date.now() / 1000 + tokens.expires_in),
+          };
+        } catch (error) {
+          console.error("Error refreshing access token", error);
+          // The error property will be used client-side to handle the refresh token error
+          return { ...token, error: "RefreshAccessTokenError" as const };
+        }
+      }
+
       return token;
     },
-    async session({ session, token }: { session: any; token: JWT }) {
+    async session({ session, token }: { session: ExtendedSession; token: JWT }) {
       // Send properties to the client
       session.accessToken = token.accessToken;
       session.refreshToken = token.refreshToken;
