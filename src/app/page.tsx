@@ -3,13 +3,12 @@
 import { useSession, signIn, signOut } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { useYahooFantasy } from "@/hooks/use-yahoo-fantasy";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 export default function Home() {
   const { data: session, status } = useSession();
   const { useUserInfo } = useYahooFantasy();
   const { data: userInfo, isLoading: isLoadingUserInfo } = useUserInfo();
-
-  console.log(userInfo);
 
   const handleSignIn = () => {
     signIn('yahoo', { callbackUrl: '/' })
@@ -34,7 +33,7 @@ export default function Home() {
           <h1 className="text-2xl font-bold mb-4">Yahoo Fantasy Baseball Tool</h1>
           <p className="mb-4">Please sign in with your Yahoo account to get started.</p>
           <Button 
-              className="cursor-pointer w-full bg-[#7d2eff]"
+              className="cursor-pointer w-full bg-[#7d2eff] py-3"
               onClick={handleSignIn}
             >
               Sign in with Yahoo
@@ -52,7 +51,10 @@ export default function Home() {
       <div className="flex justify-between items-center mb-8">
         <div className="flex items-center gap-2">
           <h1 className="text-2xl font-bold">Welcome, {userName || 'User'}</h1>
-          <img src={userImageUrl} alt="User Profile" className="w-10 h-10 rounded-full" />
+          <Avatar>
+            <AvatarImage src={userImageUrl || ''} alt="User Profile" />
+            <AvatarFallback>{userName?.[0]?.toUpperCase() || 'U'}</AvatarFallback>
+          </Avatar>
           <a 
             href={`${userProfileUrl}`}
             target="_blank"
