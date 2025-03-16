@@ -63,8 +63,7 @@ export const authOptions: NextAuthOptions = {
         url: "https://api.login.yahoo.com/oauth2/request_auth",
         params: {
           response_type: "code",
-          scope: "openid fspt-r",
-          prompt: "login"
+          scope: "openid fspt-r"
         },
       },
       token: {
