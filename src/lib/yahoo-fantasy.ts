@@ -1,6 +1,18 @@
 import axios from 'axios';
 
-const YAHOO_FANTASY_BASE_URL = 'https://fantasysports.yahooapis.com/fantasy/v2';
+interface YahooUserResponse {
+  fantasy_content: {
+    users: Array<{
+      user: Array<{
+        profile: {
+          display_name: string;
+          fantasy_profile_url: string;
+          image_url: string;
+        };
+      }>;
+    }>;
+  };
+}
 
 export class YahooFantasyAPI {
   private accessToken: string;
@@ -11,10 +23,10 @@ export class YahooFantasyAPI {
 
   private async request(endpoint: string) {
     try {
-      const response = await axios.get(`${YAHOO_FANTASY_BASE_URL}${endpoint}`, {
+      const response = await axios.get('/api/yahoo', {
+        params: { endpoint },
         headers: {
-          Authorization: `Bearer ${this.accessToken}`,
-          Accept: 'application/json',
+          'Authorization': `Bearer ${this.accessToken}`,
         },
       });
       return response.data;
@@ -22,6 +34,10 @@ export class YahooFantasyAPI {
       console.error('Yahoo Fantasy API Error:', error);
       throw error;
     }
+  }
+
+  async getUserInfo(): Promise<YahooUserResponse> {
+    return this.request('/users;use_login=1/profile');
   }
 
   async getMLBPlayers(start: number = 0, count: number = 25) {
