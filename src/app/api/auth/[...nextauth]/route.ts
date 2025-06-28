@@ -42,18 +42,6 @@ declare module "next-auth" {
 }
 
 export const authOptions: NextAuthOptions = {
-  debug: true,
-  logger: {
-    error: (code: string, ...message: unknown[]) => {
-      console.error(code, message);
-    },
-    warn: (code: string, ...message: unknown[]) => {
-      console.warn(code, message);
-    },
-    debug: (code: string, ...message: unknown[]) => {
-      console.debug(code, message);
-    },
-  },
   providers: [
     {
       id: "yahoo",
@@ -70,7 +58,7 @@ export const authOptions: NextAuthOptions = {
         url: "https://api.login.yahoo.com/oauth2/get_token",
         async request({ params, provider }) {
           const redirectUri = "https://localhost:3000/api/auth/callback/yahoo";
-          console.log("Attempting token exchange with redirect URI:", redirectUri);
+
           
           const response = await fetch("https://api.login.yahoo.com/oauth2/get_token", {
             method: "POST",
@@ -86,7 +74,6 @@ export const authOptions: NextAuthOptions = {
           });
 
           const tokens = await response.json();
-          console.log("Token response:", tokens);
           
           if (tokens.error) {
             console.error("Token error:", tokens.error, tokens.error_description);
@@ -102,7 +89,6 @@ export const authOptions: NextAuthOptions = {
       profile(profile: YahooProfile, tokens: { id_token?: string }) {
         if (tokens.id_token) {
           const idToken = jwtDecode<YahooIdToken>(tokens.id_token);
-          console.log("Decoded ID token:", idToken);
           return {
             id: idToken.sub,
             name: idToken.sub, // Yahoo doesn't provide name in ID token

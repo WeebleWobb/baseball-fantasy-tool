@@ -16,11 +16,6 @@ export async function GET(request: Request) {
       );
     }
 
-    console.log('Making request to Yahoo API:', {
-      url: `${YAHOO_FANTASY_BASE_URL}${endpoint}`,
-      accessToken: accessToken.substring(0, 10) + '...'
-    });
-
     const response = await axios.get(`${YAHOO_FANTASY_BASE_URL}${endpoint}`, {
       headers: {
         'Authorization': `Bearer ${accessToken}`,
