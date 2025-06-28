@@ -36,4 +36,11 @@ yarn-error.log*
 next-env.d.ts
 
 # Cursor rules
-.cursor/rules/*.mdc
+.cursor/
+
+# Claude
+CLAUDE.md
+.claude/
+
+#debug
+logs/
