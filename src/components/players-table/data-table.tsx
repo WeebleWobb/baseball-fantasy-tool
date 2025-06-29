@@ -54,6 +54,9 @@ export function DataTable<TData, TValue>({
       sorting,
       globalFilter,
     },
+    meta: {
+      pageIndex,
+    },
   })
 
   if (isLoading) {
@@ -73,7 +76,7 @@ export function DataTable<TData, TValue>({
     <div className="space-y-4">
       <div className="flex items-center py-4">
         <Input
-          placeholder="Search all columns..."
+          placeholder="Search Player"
           value={globalFilter ?? ""}
           onChange={(event) => setGlobalFilter(event.target.value)}
           className="max-w-sm"

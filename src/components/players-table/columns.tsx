@@ -8,6 +8,28 @@ import { PlayerStatsCell } from "@/components/players-table/player-stats-cell"
 
 export const columns: ColumnDef<YahooPlayerStats>[] = [
   {
+    id: "rank",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Rank" />
+    ),
+    cell: ({ row, table }) => {
+      // Calculate rank based on row index and current page
+      // Note: This assumes players are fetched in ranked order
+      const pageIndex = (table.options.meta as { pageIndex?: number })?.pageIndex || 0;
+      const pageSize = 25; // Players per page
+      const rank = pageIndex * pageSize + row.index + 1;
+      return <span className="font-medium text-sm">{rank}</span>;
+    },
+    accessorFn: (row, index) => {
+      // Return the calculated rank for sorting purposes
+      return index + 1; // This will be adjusted by the table's current page context
+    },
+    sortingFn: (rowA, rowB) => {
+      // Sort by the original row index to maintain rank order
+      return rowA.index - rowB.index;
+    },
+  },
+  {
     accessorKey: "name.full",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Name" />
