@@ -1,80 +1,10 @@
 import axios from 'axios';
-
-interface YahooUserResponse {
-  fantasy_content: {
-    users: Array<{
-      user: Array<{
-        profile: {
-          display_name: string;
-          fantasy_profile_url: string;
-          image_url: string;
-        };
-      }>;
-    }>;
-  };
-}
-
-interface YahooGameKey {
-  game_key: string;
-  game_id: string;
-  name: string;
-  code: string;
-  type: string;
-  season: string;
-}
-
-interface YahooGamesResponse {
-  fantasy_content: {
-    games: Array<{
-      game: [YahooGameKey, unknown];
-    }>;
-  };
-}
-
-interface YahooPlayerStats {
-  player_key: string;
-  name: {
-    full: string;
-    first: string;
-    last: string;
-  };
-  editorial_team_abbr: string;
-  display_position: string;
-  player_stats?: {
-    stats: Array<{
-      stat_id: number;
-      value: string | number;
-    }>;
-  };
-}
-
-interface YahooPlayersResponse {
-  fantasy_content: {
-    game: [
-      unknown,
-      {
-        players: {
-          count: number;
-          [key: string]: {
-            player: [
-              Array<Record<string, unknown>>,
-              {
-                player_stats?: {
-                  stats: Array<{
-                    stat_id: number;
-                    value: string | number;
-                  }>;
-                };
-              }
-            ];
-          } | number;
-        };
-      }
-    ];
-  };
-}
-
-export type { YahooPlayerStats };
+import type {
+  YahooUserResponse,
+  YahooGamesResponse,
+  YahooPlayerStats,
+  YahooPlayersResponse,
+} from '@/types/yahoo-fantasy';
 
 export class YahooFantasyAPI {
   private accessToken: string;

@@ -1,7 +1,7 @@
 "use client"
 
 import { ColumnDef } from "@tanstack/react-table"
-import { YahooPlayerStats } from "@/lib/yahoo-fantasy"
+import { YahooPlayerStats } from "@/types/yahoo-fantasy"
 import { DataTableColumnHeader } from "@/components/players-table/data-table-column-header"
 import { BATTING_STAT_IDS } from "@/lib/constants"
 import { PlayerStatsCell } from "@/components/players-table/player-stats-cell"

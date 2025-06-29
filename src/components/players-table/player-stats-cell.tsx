@@ -1,4 +1,4 @@
-import { YahooPlayerStats } from '@/lib/yahoo-fantasy';
+import { YahooPlayerStats } from '@/types/yahoo-fantasy';
 
 interface PlayerStatsCellProps {
   player: YahooPlayerStats;
