@@ -1,12 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useSession, signOut } from 'next-auth/react';
 import { YahooFantasyAPI } from '@/lib/yahoo-fantasy';
-
-interface UsePlayersOptions {
-  season?: string;
-  start?: number;
-  count?: number;
-}
+import type { UsePlayersOptions } from '@/types/hooks';
 
 // Cache duration constants in milliseconds
 const CACHE_DURATIONS = {
