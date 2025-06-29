@@ -5,30 +5,21 @@ import { YahooPlayerStats } from "@/types/yahoo-fantasy"
 import { DataTableColumnHeader } from "@/components/players-table/data-table-column-header"
 import { BATTING_STAT_IDS } from "@/lib/constants"
 import { PlayerStatsCell } from "@/components/players-table/player-stats-cell"
-import { DataTableMeta } from "@/types/table-pagination"
 
-export const columns: ColumnDef<YahooPlayerStats>[] = [
+// Extended player type with global rank
+type PlayerWithRank = YahooPlayerStats & { globalRank: number }
+
+export const columns: ColumnDef<PlayerWithRank>[] = [
   {
     id: "rank",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Rank" />
     ),
-    cell: ({ row, table }) => {
-      // Calculate rank based on row index and current page
-      // Note: This assumes players are fetched in ranked order
-      const meta = table.options.meta as DataTableMeta;
-      const pageIndex = meta?.pageIndex || 0;
-      const pageSize = meta?.pageSize || 25;
-      const rank = pageIndex * pageSize + row.index + 1;
+    accessorKey: "globalRank",
+    cell: ({ row }) => {
+      // Display the global rank that was calculated when data was fetched
+      const rank = row.original.globalRank;
       return <span className="font-medium text-sm">{rank}</span>;
-    },
-    accessorFn: (row, index) => {
-      // Return the calculated rank for sorting purposes
-      return index + 1; // This will be adjusted by the table's current page context
-    },
-    sortingFn: (rowA, rowB) => {
-      // Sort by the original row index to maintain rank order
-      return rowA.index - rowB.index;
     },
   },
   {
