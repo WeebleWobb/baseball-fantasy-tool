@@ -122,8 +122,6 @@ export class YahooFantasyAPI {
     return gameKey;
   }
 
-
-
   async getMLBPlayers(options: { season?: string; start?: number; count?: number; } = {}): Promise<YahooPlayerStats[]> {
     const { start = 0, count = 25 } = options;
     let { season } = options;
