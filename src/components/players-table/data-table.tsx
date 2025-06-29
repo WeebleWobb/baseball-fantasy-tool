@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { DataTableMeta } from "@/types/table-pagination"
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
@@ -29,6 +30,7 @@ interface DataTableProps<TData, TValue> {
   pageIndex?: number
   onPageChange?: (page: number) => void
   totalPages?: number
+  pageSize?: number
 }
 
 export function DataTable<TData, TValue>({
@@ -38,6 +40,7 @@ export function DataTable<TData, TValue>({
   pageIndex = 0,
   onPageChange,
   totalPages = 1,
+  pageSize = 25,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [globalFilter, setGlobalFilter] = React.useState("")
@@ -56,7 +59,8 @@ export function DataTable<TData, TValue>({
     },
     meta: {
       pageIndex,
-    },
+      pageSize,
+    } as DataTableMeta,
   })
 
   if (isLoading) {

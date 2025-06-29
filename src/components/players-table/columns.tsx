@@ -5,6 +5,7 @@ import { YahooPlayerStats } from "@/types/yahoo-fantasy"
 import { DataTableColumnHeader } from "@/components/players-table/data-table-column-header"
 import { BATTING_STAT_IDS } from "@/lib/constants"
 import { PlayerStatsCell } from "@/components/players-table/player-stats-cell"
+import { DataTableMeta } from "@/types/table-pagination"
 
 export const columns: ColumnDef<YahooPlayerStats>[] = [
   {
@@ -15,8 +16,9 @@ export const columns: ColumnDef<YahooPlayerStats>[] = [
     cell: ({ row, table }) => {
       // Calculate rank based on row index and current page
       // Note: This assumes players are fetched in ranked order
-      const pageIndex = (table.options.meta as { pageIndex?: number })?.pageIndex || 0;
-      const pageSize = 25; // Players per page
+      const meta = table.options.meta as DataTableMeta;
+      const pageIndex = meta?.pageIndex || 0;
+      const pageSize = meta?.pageSize || 25;
       const rank = pageIndex * pageSize + row.index + 1;
       return <span className="font-medium text-sm">{rank}</span>;
     },
