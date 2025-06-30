@@ -1,36 +1,14 @@
 import NextAuth from "next-auth";
-import type { DefaultSession, NextAuthOptions } from "next-auth";
+import type { NextAuthOptions } from "next-auth";
 import type { OAuthConfig } from "next-auth/providers/oauth";
 import type { JWT } from "next-auth/jwt";
 import { jwtDecode } from "jwt-decode";
-
-interface YahooProfile {
-  sub: string;
-  name?: string;
-  email?: string;
-  picture?: string;
-}
-
-interface YahooIdToken {
-  sub: string;
-  aud: string;
-  iss: string;
-  exp: number;
-  iat: number;
-}
-
-interface YahooTokens {
-  access_token: string;
-  refresh_token?: string;
-  expires_in: number;
-}
-
-interface ExtendedSession extends DefaultSession {
-  accessToken?: string;
-  refreshToken?: string;
-  expiresAt?: number;
-  error?: "RefreshAccessTokenError";
-}
+import type {
+  YahooProfile,
+  YahooIdToken,
+  YahooTokens,
+  ExtendedSession,
+} from "@/types/auth";
 
 declare module "next-auth" {
   interface Session {

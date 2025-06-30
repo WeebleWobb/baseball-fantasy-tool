@@ -18,11 +18,20 @@ export default function Home() {
   const [season, setSeason] = React.useState('2025'); // Set 2025 as default
   
   // Update usePlayers with pagination
-  const { data: players, isLoading: isLoadingPlayers } = usePlayers({
+  const { data: playersData, isLoading: isLoadingPlayers } = usePlayers({
     season,
     start: pageIndex * 25, // 25 players per page
     count: 25
   });
+
+  // Add global rank to each player for proper sorting across pages
+  const players = React.useMemo(() => {
+    if (!playersData) return [];
+    return playersData.map((player, index) => ({
+      ...player,
+      globalRank: pageIndex * 25 + index + 1
+    }));
+  }, [playersData, pageIndex]);
 
   // Reset page when season changes
   React.useEffect(() => {
