@@ -14,16 +14,41 @@ const customJestConfig = {
     // Handle module aliases (this will be automatically configured for you based on your tsconfig.json paths)
     '^@/(.*)$': '<rootDir>/src/$1',
   },
+  transformIgnorePatterns: [
+    'node_modules/(?!(jose|openid-client|oauth|@panva/hkdf|preact-render-to-string|preact|next-auth)/)',
+  ],
   collectCoverageFrom: [
     'src/**/*.{js,jsx,ts,tsx}',
     '!src/**/*.d.ts',
     '!src/app/layout.tsx',
     '!src/app/globals.css',
+    '!src/__tests__/utils/**',
+    '!src/app/api/auth/**',
+    '!src/lib/utils.ts',
+    '!src/lib/constants.ts',
   ],
   testMatch: [
-    '<rootDir>/src/**/__tests__/**/*.{js,jsx,ts,tsx}',
+    '<rootDir>/src/**/__tests__/**/*.{test,spec}.{js,jsx,ts,tsx}',
     '<rootDir>/src/**/*.{test,spec}.{js,jsx,ts,tsx}',
   ],
+  testPathIgnorePatterns: [
+    '<rootDir>/.next/', 
+    '<rootDir>/node_modules/',
+    '<rootDir>/src/__tests__/utils/test-fixtures.ts'
+  ],
+  // Optimize file watching to prevent EMFILE errors
+  watchPathIgnorePatterns: [
+    '<rootDir>/node_modules/',
+    '<rootDir>/.next/',
+    '<rootDir>/.git/',
+    '<rootDir>/logs/',
+    '<rootDir>/public/',
+    '<rootDir>/specs/',
+  ],
+  // Use polling for file watching on macOS to avoid file descriptor limits
+  watchman: false,
+  // Limit the number of workers to reduce resource usage
+  maxWorkers: '50%',
 }
 
 // createJestConfig is exported this way to ensure that next/jest can load the Next.js config which is async

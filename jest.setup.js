@@ -38,4 +38,43 @@ jest.mock('next-auth/react', () => ({
 
 // Mock environment variables
 process.env.NEXTAUTH_URL = 'http://localhost:3000'
-process.env.NEXTAUTH_SECRET = 'test-secret' 
+process.env.NEXTAUTH_SECRET = 'test-secret'
+
+// Polyfill Request for Node.js test environment
+global.Request = class Request {
+  constructor(url, init = {}) {
+    this.url = url
+    this.method = init.method || 'GET'
+    this.headers = new Headers(init.headers || {})
+    this.body = init.body
+  }
+}
+
+// Polyfill Headers for Node.js test environment
+global.Headers = class Headers {
+  constructor(init = {}) {
+    this.headers = new Map()
+    if (init) {
+      Object.entries(init).forEach(([key, value]) => {
+        this.headers.set(key.toLowerCase(), value)
+      })
+    }
+  }
+  
+  get(name) {
+    return this.headers.get(name.toLowerCase())
+  }
+  
+  set(name, value) {
+    this.headers.set(name.toLowerCase(), value)
+  }
+  
+  has(name) {
+    return this.headers.has(name.toLowerCase())
+  }
+}
+
+// Polyfill TextEncoder/TextDecoder for Node.js test environment
+import { TextEncoder, TextDecoder } from 'util'
+global.TextEncoder = TextEncoder
+global.TextDecoder = TextDecoder
