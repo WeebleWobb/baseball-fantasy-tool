@@ -1,11 +1,12 @@
 'use client';
 
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 
 export default function AuthError() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const error = searchParams.get('error');
 
   return (
@@ -25,7 +26,7 @@ export default function AuthError() {
         <CardContent>
           <Button 
             className="w-full"
-            onClick={() => window.location.href = '/auth/signin'}
+            onClick={() => router.push('/auth/signin')}
           >
             Try Again
           </Button>
