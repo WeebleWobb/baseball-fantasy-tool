@@ -1,13 +1,10 @@
 "use client"
 
 import { ColumnDef } from "@tanstack/react-table"
-import { YahooPlayerStats } from "@/types/yahoo-fantasy"
+import { PlayerWithRank } from "@/types/yahoo-fantasy"
 import { DataTableColumnHeader } from "@/components/players-table/data-table-column-header"
 import { BATTING_STAT_IDS } from "@/lib/constants"
 import { PlayerStatsCell } from "@/components/players-table/player-stats-cell"
-
-// Extended player type with global rank
-type PlayerWithRank = YahooPlayerStats & { globalRank: number }
 
 export const columns: ColumnDef<PlayerWithRank>[] = [
   {
