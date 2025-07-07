@@ -2,7 +2,7 @@ export interface YahooUserResponse {
   fantasy_content: {
     users: Array<{
       user: Array<{
-        profile: {
+        profile?: {
           display_name: string;
           fantasy_profile_url: string;
           image_url: string;
@@ -45,6 +45,9 @@ export interface YahooPlayerStats {
     }>;
   };
 }
+
+// Extended player type with global rank for table display
+export type PlayerWithRank = YahooPlayerStats & { globalRank: number }
 
 export interface YahooPlayersResponse {
   fantasy_content: {

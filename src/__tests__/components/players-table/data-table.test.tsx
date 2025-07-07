@@ -1,0 +1,132 @@
+import { render, screen, fireEvent } from '@testing-library/react'
+import '@testing-library/jest-dom'
+import { DataTable } from '@/components/players-table/data-table'
+import { columns } from '@/components/players-table/columns'
+import { 
+  mockPlayersWithRank,
+  mockMalformedPlayer,
+  mockNoAtBatsPlayer
+} from '@/__tests__/utils/test-fixtures'
+
+describe('DataTable Integration', () => {
+  const setup = (data = mockPlayersWithRank, props = {}) => {
+    return render(<DataTable columns={columns} data={data} {...props} />)
+  }
+
+  it('should display player data correctly', () => {
+    setup()
+
+    // Check key player information is displayed
+    expect(screen.getByText('Mike Trout')).toBeInTheDocument()
+    expect(screen.getByText('Mookie Betts')).toBeInTheDocument()
+    expect(screen.getByText('LAA')).toBeInTheDocument()
+    expect(screen.getByText('LAD')).toBeInTheDocument()
+    expect(screen.getByText('OF')).toBeInTheDocument()
+
+    // Check stats are displayed
+    expect(screen.getByText('150')).toBeInTheDocument() // Hits
+    expect(screen.getByText('35')).toBeInTheDocument()  // Home Runs
+    expect(screen.getByText('100')).toBeInTheDocument() // RBI
+    
+    // Check H/AB format (hits/at-bats with slash)
+    const slashes = screen.getAllByText('/')
+    expect(slashes.length).toBeGreaterThan(0)
+  })
+
+  it('should handle sorting interaction', () => {
+    setup()
+
+    // Verify sorting functionality works (user can click headers)
+    const nameHeader = screen.getByText('Name')
+    expect(nameHeader.closest('button')).toBeInTheDocument()
+    
+    // Test actual sorting behavior
+    fireEvent.click(nameHeader)
+    
+    // Basic verification that sorting occurred (table still renders)
+    expect(screen.getByText('Mike Trout')).toBeInTheDocument()
+  })
+
+  it('should handle empty data gracefully', () => {
+    setup([])
+
+    expect(screen.getByText('Name')).toBeInTheDocument() // Headers still show
+    expect(screen.getByText('No results.')).toBeInTheDocument() // Empty state
+  })
+
+  it('should handle malformed and missing data', () => {
+    setup([mockMalformedPlayer, mockNoAtBatsPlayer])
+
+    // Should display players even with bad data
+    expect(screen.getByText('Bad Player')).toBeInTheDocument()
+    expect(screen.getByText('Zero AB')).toBeInTheDocument()
+    
+    // Should handle missing stats by showing zeros
+    const zeros = screen.getAllByText('0')
+    expect(zeros.length).toBeGreaterThan(0)
+    
+    // Should handle division by zero (10/0)
+    expect(screen.getByText('10')).toBeInTheDocument()
+  })
+
+  it('should filter players based on search input', () => {
+    setup()
+
+    // Initially all players should be visible
+    expect(screen.getByText('Mike Trout')).toBeInTheDocument()
+    expect(screen.getByText('Mookie Betts')).toBeInTheDocument()
+    expect(screen.getByText('Rookie Player')).toBeInTheDocument()
+
+    // Find and use the search input
+    const searchInput = screen.getByPlaceholderText('Search Player')
+    expect(searchInput).toBeInTheDocument()
+
+    // Search for "Mike" - should show only Mike Trout
+    fireEvent.change(searchInput, { target: { value: 'Mike' } })
+    
+    expect(screen.getByText('Mike Trout')).toBeInTheDocument()
+    expect(screen.queryByText('Mookie Betts')).not.toBeInTheDocument()
+    expect(screen.queryByText('Rookie Player')).not.toBeInTheDocument()
+
+    // Search for "LAD" (team) - should show only Mookie Betts
+    fireEvent.change(searchInput, { target: { value: 'LAD' } })
+    
+    expect(screen.queryByText('Mike Trout')).not.toBeInTheDocument()
+    expect(screen.getByText('Mookie Betts')).toBeInTheDocument()
+    expect(screen.queryByText('Rookie Player')).not.toBeInTheDocument()
+
+    // Clear search - should show all players again
+    fireEvent.change(searchInput, { target: { value: '' } })
+    
+    expect(screen.getByText('Mike Trout')).toBeInTheDocument()
+    expect(screen.getByText('Mookie Betts')).toBeInTheDocument()
+    expect(screen.getByText('Rookie Player')).toBeInTheDocument()
+  })
+
+  it('should handle pagination controls correctly', () => {
+    const mockOnPageChange = jest.fn()
+    
+    setup(mockPlayersWithRank, {
+      pageIndex: 1,
+      totalPages: 3,
+      onPageChange: mockOnPageChange
+    })
+
+    expect(screen.getByText('Page 2 of 3')).toBeInTheDocument()
+    
+    const prevButton = screen.getByRole('button', { name: /previous/i })
+    const nextButton = screen.getByRole('button', { name: /next/i })
+    
+    // Both buttons should be enabled
+    expect(prevButton).not.toBeDisabled()
+    expect(nextButton).not.toBeDisabled()
+
+    // Test both onClick handlers
+    fireEvent.click(prevButton)
+    expect(mockOnPageChange).toHaveBeenCalledWith(0)
+
+    fireEvent.click(nextButton)
+    expect(mockOnPageChange).toHaveBeenCalledWith(2)
+  })
+
+}) 

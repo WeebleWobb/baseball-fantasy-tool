@@ -1,0 +1,122 @@
+name: PR Validation
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+jobs:
+  validate:
+    name: Validate PR
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Run all quality checks
+        run: |
+          echo "🔍 Running linter..."
+          npm run lint
+          
+          echo "🔧 Running type check..."
+          npm run type-check
+          
+          echo "🧪 Running tests with coverage..."
+          npm test -- --coverage --watchAll=false --passWithNoTests
+          
+          echo "🏗️ Testing build..."
+          npm run build
+          
+      - name: Check test coverage threshold
+        run: |
+          echo "📊 Checking coverage thresholds..."
+          if [ -f coverage/coverage-summary.json ]; then
+            node -e "
+              const coverage = require('./coverage/coverage-summary.json');
+              const total = coverage.total;
+              const threshold = 80;
+              
+              console.log('Coverage Summary:');
+              console.log('Lines:', total.lines.pct + '%');
+              console.log('Functions:', total.functions.pct + '%');
+              console.log('Branches:', total.branches.pct + '%');
+              console.log('Statements:', total.statements.pct + '%');
+              
+              if (total.lines.pct < threshold) {
+                console.error('❌ Line coverage below threshold:', total.lines.pct + '% < ' + threshold + '%');
+                process.exit(1);
+              }
+              
+              console.log('✅ Coverage meets threshold requirements');
+            "
+          else
+            echo "⚠️ No coverage report found, skipping coverage check"
+          fi
+          
+      - name: Comment PR with results
+        uses: actions/github-script@v7
+        if: always()
+        with:
+          script: |
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            
+            const botComment = comments.find(comment => 
+              comment.user.type === 'Bot' && comment.body.includes('🤖 CI/CD Results')
+            );
+            
+            const success = '${{ job.status }}' === 'success';
+            const emoji = success ? '✅' : '❌';
+            const status = success ? 'PASSED' : 'FAILED';
+            
+            const body = `🤖 CI/CD Results
+            
+            **Status: ${emoji} ${status}**
+            
+            **Checks Run:**
+            - ${emoji} Linting
+            - ${emoji} Type checking  
+            - ${emoji} Unit tests
+            - ${emoji} Build verification
+            - ${emoji} Coverage threshold
+            
+            ${success ? 
+              '🎉 All checks passed! This PR is ready for review.' : 
+              '❌ Some checks failed. Please fix the issues and push again.'
+            }
+            `;
+            
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: body
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: body
+              });
+            } 

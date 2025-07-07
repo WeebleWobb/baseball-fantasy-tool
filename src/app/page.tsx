@@ -114,7 +114,7 @@ export default function Home() {
         </div>
         <DataTable 
           columns={columns} 
-          data={players || []} 
+          data={players} 
           isLoading={isLoadingPlayers}
           pageIndex={pageIndex}
           onPageChange={setPageIndex}

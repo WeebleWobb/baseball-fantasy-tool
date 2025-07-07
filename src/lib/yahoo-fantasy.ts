@@ -15,16 +15,11 @@ export class YahooFantasyAPI {
   }
 
   private async request<T>(endpoint: string): Promise<T> {
-    try {
-      const response = await axios.get('/api/yahoo', {
-        params: { endpoint },
-        headers: { 'Authorization': `Bearer ${this.accessToken}` },
-      });
-      return response.data;
-    } catch (error) {
-      console.error('Yahoo Fantasy API Error:', error);
-      throw error;
-    }
+    const response = await axios.get('/api/yahoo', {
+      params: { endpoint },
+      headers: { 'Authorization': `Bearer ${this.accessToken}` },
+    });
+    return response.data;
   }
 
   async getUserInfo(): Promise<YahooUserResponse> {

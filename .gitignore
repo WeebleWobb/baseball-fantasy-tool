@@ -44,3 +44,6 @@ CLAUDE.md
 
 #debug
 logs/
+
+# Project specs and planning documents
+/specs/
