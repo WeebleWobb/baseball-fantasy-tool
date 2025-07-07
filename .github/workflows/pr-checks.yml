@@ -50,7 +50,7 @@ jobs:
             node -e "
               const coverage = require('./coverage/coverage-summary.json');
               const total = coverage.total;
-              const threshold = 80;
+              const threshold = 85;
               
               console.log('Coverage Summary:');
               console.log('Lines:', total.lines.pct + '%');

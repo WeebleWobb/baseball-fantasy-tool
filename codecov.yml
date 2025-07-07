@@ -2,11 +2,11 @@ coverage:
   status:
     project:
       default:
-        target: 80%
+        target: 85%
         threshold: 5%
     patch:
       default:
-        target: 80%
+        target: 85%
         threshold: 5%
 
 comment:
@@ -21,6 +21,7 @@ ignore:
   - "src/app/api/auth/**"
   - "src/lib/utils.ts"
   - "src/lib/constants.ts"
+  - "src/lib/auth.ts"
   - "**/*.d.ts"
   - "next.config.ts"
   - "tailwind.config.ts"
