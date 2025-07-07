@@ -35,6 +35,9 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# SWC compiler cache
+.swc/
+
 # Cursor rules
 .cursor/
 
