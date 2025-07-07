@@ -13,13 +13,14 @@ export default function Home() {
   const { useUserInfo, usePlayers } = useYahooFantasy();
   const { data: userInfo, isLoading: isLoadingUserInfo } = useUserInfo();
   
-  // Add state for pagination and season
+  // Add state for pagination
   const [pageIndex, setPageIndex] = React.useState(0);
-  const [season, setSeason] = React.useState('2025'); // Set 2025 as default
   
-  // Update usePlayers with pagination
+  // Get current season dynamically
+  const currentSeason = new Date().getFullYear().toString();
+  
+  // Update usePlayers with pagination - always uses current season
   const { data: playersData, isLoading: isLoadingPlayers } = usePlayers({
-    season,
     start: pageIndex * 25, // 25 players per page
     count: 25
   });
@@ -32,11 +33,6 @@ export default function Home() {
       globalRank: pageIndex * 25 + index + 1
     }));
   }, [playersData, pageIndex]);
-
-  // Reset page when season changes
-  React.useEffect(() => {
-    setPageIndex(0);
-  }, [season]);
 
   const handleSignIn = () => {
     signIn('yahoo', { callbackUrl: '/' })
@@ -100,17 +96,8 @@ export default function Home() {
         </div>
       </header>
       <main className="p-8">
-        <div className="mb-6 flex justify-between items-center">
-          <h2 className="text-xl font-semibold">MLB Players - {season} Season</h2>
-          <select 
-            value={season}
-            onChange={(e) => setSeason(e.target.value)}
-            className="border rounded p-2 bg-white"
-          >
-            {[2025, 2024, 2023, 2022].map((year) => (
-              <option key={year} value={year.toString()}>{year}</option>
-            ))}
-          </select>
+        <div className="mb-6">
+          <h2 className="text-xl font-semibold">MLB Players - {currentSeason} Season</h2>
         </div>
         <DataTable 
           columns={columns} 
