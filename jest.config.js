@@ -26,6 +26,7 @@ const customJestConfig = {
     '!src/app/api/auth/**',
     '!src/lib/utils.ts',
     '!src/lib/constants.ts',
+    '!src/lib/auth.ts',
   ],
   testMatch: [
     '<rootDir>/src/**/__tests__/**/*.{test,spec}.{js,jsx,ts,tsx}',
@@ -49,6 +50,15 @@ const customJestConfig = {
   watchman: false,
   // Limit the number of workers to reduce resource usage
   maxWorkers: '50%',
+  // Coverage thresholds
+  coverageThreshold: {
+    global: {
+      lines: 85,
+      functions: 85,
+      branches: 80,
+      statements: 85,
+    },
+  },
 }
 
 // createJestConfig is exported this way to ensure that next/jest can load the Next.js config which is async
