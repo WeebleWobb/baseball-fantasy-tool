@@ -1,21 +1,18 @@
 import { renderHook, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { ReactNode } from 'react'
 import { useYahooFantasy } from '@/hooks/use-yahoo-fantasy'
-import { mockUserInfo, mockPlayersSimple } from '@/__tests__/utils/test-fixtures'
-import type { ReactNode } from 'react'
-import { useSession, signOut } from 'next-auth/react'
 import { YahooFantasyAPI } from '@/lib/yahoo-fantasy'
+import { useSession, signOut } from 'next-auth/react'
+import { mockUserInfo, mockPlayersSimple } from '@/__tests__/utils/test-fixtures'
 
 // Simple inline mocks
 jest.mock('next-auth/react', () => ({
   useSession: jest.fn(),
-  signIn: jest.fn(),
   signOut: jest.fn(),
 }))
 
-jest.mock('@/lib/yahoo-fantasy', () => ({
-  YahooFantasyAPI: jest.fn(),
-}))
+jest.mock('@/lib/yahoo-fantasy')
 
 const mockUseSession = useSession as jest.MockedFunction<typeof useSession>
 const mockSignOut = signOut as jest.MockedFunction<typeof signOut>
@@ -105,7 +102,7 @@ describe('useYahooFantasy', () => {
     expect(userInfoResult.result.current.data).toEqual(mockUserInfo)
   })
 
-  it('should fetch players with options', async () => {
+  it('should fetch players with pagination options', async () => {
     mockUseSession.mockReturnValue({
       data: {
         accessToken: 'test-access-token',
@@ -124,7 +121,7 @@ describe('useYahooFantasy', () => {
 
     const { usePlayers } = result.current
     const playersResult = renderHook(() => 
-      usePlayers({ season: '2024', start: 25, count: 50 }), {
+      usePlayers({ start: 25, count: 50 }), {
       wrapper: createWrapper,
     })
 
@@ -133,7 +130,6 @@ describe('useYahooFantasy', () => {
     })
 
     expect(mockApiInstance.getMLBPlayers).toHaveBeenCalledWith({
-      season: '2024',
       start: 25,
       count: 50
     })

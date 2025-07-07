@@ -38,16 +38,16 @@ describe('YahooFantasyAPI', () => {
       mockedAxios.get.mockResolvedValue({ data: mockGameResponse })
     })
 
-    it('should fetch and cache game keys correctly', async () => {
-      const gameKey1 = await api.getMLBGameKey('2024')
-      const gameKey2 = await api.getMLBGameKey('2024') // Should use cache
+    it('should fetch and cache game keys for current year', async () => {
+      const gameKey1 = await api.getMLBGameKey()
+      const gameKey2 = await api.getMLBGameKey() // Should use cache
       
       expect(gameKey1).toBe('431')
       expect(gameKey2).toBe('431')
       expect(mockedAxios.get).toHaveBeenCalledTimes(1) // Cached on second call
     })
 
-    it('should use current year when no season specified', async () => {
+    it('should use current year automatically', async () => {
       const currentYear = new Date().getFullYear().toString()
       
       const gameKey = await api.getMLBGameKey()
@@ -59,12 +59,13 @@ describe('YahooFantasyAPI', () => {
       expect(gameKey).toBe('431')
     })
 
-    it('should throw error when no games found', async () => {
+    it('should throw error when no games found for current year', async () => {
+      const currentYear = new Date().getFullYear().toString()
       mockedAxios.get.mockResolvedValue({
         data: { fantasy_content: { games: [] } }
       })
       
-      await expect(api.getMLBGameKey('2020')).rejects.toThrow('No MLB game found for season 2020')
+      await expect(api.getMLBGameKey()).rejects.toThrow(`No MLB game found for season ${currentYear}`)
     })
   })
 
@@ -109,20 +110,6 @@ describe('YahooFantasyAPI', () => {
         expect.objectContaining({
           params: expect.objectContaining({
             endpoint: expect.stringContaining('start=25;count=50')
-          })
-        })
-      )
-    })
-
-    it('should validate seasons and default to current year for invalid ones', async () => {
-      const currentYear = new Date().getFullYear()
-      
-      await api.getMLBPlayers({ season: '1999' }) // Too old
-      
-      expect(mockedAxios.get).toHaveBeenCalledWith('/api/yahoo', 
-        expect.objectContaining({
-          params: expect.objectContaining({
-            endpoint: expect.stringContaining(`seasons=${currentYear}`)
           })
         })
       )

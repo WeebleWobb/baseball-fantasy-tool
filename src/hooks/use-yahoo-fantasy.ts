@@ -13,7 +13,6 @@ const CACHE_DURATIONS = {
 
 export function useYahooFantasy() {
   const { data: session } = useSession();
-  const currentYear = new Date().getFullYear().toString();
   
   // Handle token refresh errors
   if (session?.error === 'RefreshAccessTokenError') {
@@ -38,16 +37,15 @@ export function useYahooFantasy() {
   };
 
   const usePlayers = (options: UsePlayersOptions = {}) => {
-    const { season, start = 0, count = 25 } = options;
-    const isCurrentSeason = season === currentYear;
+    const { start = 0, count = 25 } = options;
 
     return useQuery({
-      queryKey: ['players', season, start, count],
-      queryFn: () => api?.getMLBPlayers({ season, start, count }),
+      queryKey: ['players', start, count],
+      queryFn: () => api?.getMLBPlayers({ start, count }),
       enabled: !!api,
-      // Current season player list updates more frequently
-      gcTime: isCurrentSeason ? CACHE_DURATIONS.HOUR : CACHE_DURATIONS.DAY,
-      staleTime: isCurrentSeason ? CACHE_DURATIONS.MINUTE * 5 : CACHE_DURATIONS.HOUR,
+      // Current season player list updates frequently during the season
+      gcTime: CACHE_DURATIONS.HOUR,
+      staleTime: CACHE_DURATIONS.MINUTE * 5,
     });
   };
 

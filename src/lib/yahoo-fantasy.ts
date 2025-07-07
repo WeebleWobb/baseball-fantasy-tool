@@ -17,7 +17,9 @@ export class YahooFantasyAPI {
   private async request<T>(endpoint: string): Promise<T> {
     const response = await axios.get('/api/yahoo', {
       params: { endpoint },
-      headers: { 'Authorization': `Bearer ${this.accessToken}` },
+      headers: {
+        'Authorization': `Bearer ${this.accessToken}`
+      }
     });
     return response.data;
   }
@@ -26,48 +28,32 @@ export class YahooFantasyAPI {
     return this.request<YahooUserResponse>('/users;use_login=1/profile');
   }
 
-  async getMLBGameKey(season?: string): Promise<string> {
-    // If no season specified, use current year
-    const targetSeason = season || new Date().getFullYear().toString();
+  async getMLBGameKey(): Promise<string> {
+    // Always use current year
+    const currentSeason = new Date().getFullYear().toString();
     
     // Check if we already have this season's key cached
-    const cachedKey = this.gameKeys.get(targetSeason);
+    const cachedKey = this.gameKeys.get(currentSeason);
     if (cachedKey) return cachedKey;
     
-    // Fetch the game key for the specified season
-    const response = await this.request<YahooGamesResponse>(`/games;game_codes=mlb;seasons=${targetSeason}`);
+    // Fetch the game key for the current season
+    const response = await this.request<YahooGamesResponse>(`/games;game_codes=mlb;seasons=${currentSeason}`);
     const games = response.fantasy_content.games;
     
     if (games.length === 0) {
-      throw new Error(`No MLB game found for season ${targetSeason}`);
+      throw new Error(`No MLB game found for season ${currentSeason}`);
     }
     
     const gameKey = games[0].game[0].game_key;
-    this.gameKeys.set(targetSeason, gameKey);
+    this.gameKeys.set(currentSeason, gameKey);
     return gameKey;
   }
 
-  async getMLBPlayers(options: { season?: string; start?: number; count?: number; } = {}): Promise<YahooPlayerStats[]> {
+  async getMLBPlayers(options: { start?: number; count?: number; } = {}): Promise<YahooPlayerStats[]> {
     const { start = 0, count = 25 } = options;
-    let { season } = options;
-    
-    // Validate and adjust season
-    const currentYear = new Date().getFullYear();
-    if (!season) {
-      season = currentYear.toString();
-      // MLB season starts in March/April, so before that use previous year
-      if (new Date().getMonth() < 2) {
-        season = (currentYear - 1).toString();
-      }
-    } else {
-      const seasonYear = parseInt(season);
-      if (isNaN(seasonYear) || seasonYear < 2002 || seasonYear > currentYear + 1) {
-        season = currentYear.toString();
-      }
-    }
 
     try {
-      const gameKey = await this.getMLBGameKey(season);
+      const gameKey = await this.getMLBGameKey();
       
       // Request players with their season stats
       const endpoint = `/game/${gameKey}/players;start=${start};count=${count};sort=AR;status=A;position=B/stats`;
@@ -142,6 +128,4 @@ export class YahooFantasyAPI {
       return [];
     }
   }
-
-
 } 
