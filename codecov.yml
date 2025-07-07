@@ -1,0 +1,27 @@
+coverage:
+  status:
+    project:
+      default:
+        target: 80%
+        threshold: 5%
+    patch:
+      default:
+        target: 80%
+        threshold: 5%
+
+comment:
+  layout: "reach,diff,flags,tree"
+  behavior: default
+  require_changes: false
+  require_base: no
+  require_head: yes
+
+ignore:
+  - "src/__tests__/**"
+  - "src/app/api/auth/**"
+  - "src/lib/utils.ts"
+  - "src/lib/constants.ts"
+  - "**/*.d.ts"
+  - "next.config.ts"
+  - "tailwind.config.ts"
+  - "postcss.config.mjs" 
