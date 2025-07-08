@@ -4,8 +4,10 @@ import { useSession, signIn, signOut } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { useYahooFantasy } from "@/hooks/use-yahoo-fantasy";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { columns } from "@/components/players-table/columns";
+import { getColumns } from "@/components/players-table/columns";
 import { DataTable } from "@/components/players-table/data-table";
+import { getStoredFilter, saveFilter } from "@/lib/filter-state";
+import type { PlayerFilterType } from "@/types/hooks";
 import React from "react";
 
 export default function Home() {
@@ -16,13 +18,20 @@ export default function Home() {
   // Add state for pagination
   const [pageIndex, setPageIndex] = React.useState(0);
   
+  // Add filter state management with localStorage initialization
+  const [activeFilter, setActiveFilter] = React.useState<PlayerFilterType>(() => {
+    // Initialize from localStorage on component mount
+    return getStoredFilter();
+  });
+  
   // Get current season dynamically
   const currentSeason = new Date().getFullYear().toString();
   
-  // Update usePlayers with pagination - always uses current season
+  // Update usePlayers with pagination and filter - always uses current season
   const { data: playersData, isLoading: isLoadingPlayers } = usePlayers({
     start: pageIndex * 25, // 25 players per page
-    count: 25
+    count: 25,
+    playerType: activeFilter
   });
 
   // Add global rank to each player for proper sorting across pages
@@ -33,6 +42,15 @@ export default function Home() {
       globalRank: pageIndex * 25 + index + 1
     }));
   }, [playersData, pageIndex]);
+
+  // Handle filter changes
+  const handleFilterChange = React.useCallback((newFilter: PlayerFilterType) => {
+    setActiveFilter(newFilter);
+    // Reset pagination when filter changes to avoid empty pages
+    setPageIndex(0);
+    // Persist filter change to localStorage
+    saveFilter(newFilter);
+  }, []);
 
   const handleSignIn = () => {
     signIn('yahoo', { callbackUrl: '/' })
@@ -100,12 +118,15 @@ export default function Home() {
           <h2 className="text-xl font-semibold">MLB Players - {currentSeason} Season</h2>
         </div>
         <DataTable 
-          columns={columns} 
+          columns={getColumns(activeFilter)} 
           data={players} 
           isLoading={isLoadingPlayers}
           pageIndex={pageIndex}
           onPageChange={setPageIndex}
           totalPages={4} // This is hardcoded for now, ideally should come from API
+          activeFilter={activeFilter}
+          onFilterChange={handleFilterChange}
+          disabled={isLoadingPlayers}
         />
       </main>
     </>

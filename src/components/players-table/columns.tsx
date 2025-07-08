@@ -3,10 +3,12 @@
 import { ColumnDef } from "@tanstack/react-table"
 import { PlayerWithRank } from "@/types/yahoo-fantasy"
 import { DataTableColumnHeader } from "@/components/players-table/data-table-column-header"
-import { BATTING_STAT_IDS } from "@/lib/constants"
+import { BATTING_STAT_IDS, PITCHING_STAT_IDS } from "@/lib/constants"
 import { PlayerStatsCell } from "@/components/players-table/player-stats-cell"
+import type { PlayerFilterType } from "@/types/hooks"
 
-export const columns: ColumnDef<PlayerWithRank>[] = [
+// Common columns for both batters and pitchers
+const commonColumns: ColumnDef<PlayerWithRank>[] = [
   {
     id: "rank",
     header: ({ column }) => (
@@ -14,7 +16,6 @@ export const columns: ColumnDef<PlayerWithRank>[] = [
     ),
     accessorKey: "globalRank",
     cell: ({ row }) => {
-      // Display the global rank that was calculated when data was fetched
       const rank = row.original.globalRank;
       return <span className="font-medium text-sm">{rank}</span>;
     },
@@ -37,6 +38,10 @@ export const columns: ColumnDef<PlayerWithRank>[] = [
       <DataTableColumnHeader column={column} title="Position" />
     ),
   },
+];
+
+// Batter-specific columns
+const batterColumns: ColumnDef<PlayerWithRank>[] = [
   {
     id: "batting_avg",
     header: ({ column }) => (
@@ -133,4 +138,131 @@ export const columns: ColumnDef<PlayerWithRank>[] = [
       return <PlayerStatsCell player={row.original} statId={BATTING_STAT_IDS.HIT_BY_PITCH} />;
     },
   },
-] 
+];
+
+// Pitcher-specific columns (in specified order: IP, WHIP, ERA, W, SV, OUT, H, ER, BB, HBP, K, BS)
+const pitcherColumns: ColumnDef<PlayerWithRank>[] = [
+  {
+    id: "innings_pitched",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="IP" />
+    ),
+    cell: ({ row }) => {
+      return <PlayerStatsCell player={row.original} statId={PITCHING_STAT_IDS.INNINGS_PITCHED} />;
+    },
+  },
+  {
+    id: "whip",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="WHIP" />
+    ),
+    cell: ({ row }) => {
+      return <PlayerStatsCell player={row.original} statId={PITCHING_STAT_IDS.WHIP} />;
+    },
+  },
+  {
+    id: "era",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="ERA" />
+    ),
+    cell: ({ row }) => {
+      return <PlayerStatsCell player={row.original} statId={PITCHING_STAT_IDS.ERA} />;
+    },
+  },
+  {
+    id: "wins",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="W" />
+    ),
+    cell: ({ row }) => {
+      return <PlayerStatsCell player={row.original} statId={PITCHING_STAT_IDS.WINS} />;
+    },
+  },
+  {
+    id: "saves",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="SV" />
+    ),
+    cell: ({ row }) => {
+      return <PlayerStatsCell player={row.original} statId={PITCHING_STAT_IDS.SAVES} />;
+    },
+  },
+  {
+    id: "outs",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="OUT" />
+    ),
+    cell: ({ row }) => {
+      return <PlayerStatsCell player={row.original} statId={PITCHING_STAT_IDS.OUTS} />;
+    },
+  },
+  {
+    id: "hits_allowed",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="H" />
+    ),
+    cell: ({ row }) => {
+      return <PlayerStatsCell player={row.original} statId={PITCHING_STAT_IDS.HITS_ALLOWED} />;
+    },
+  },
+  {
+    id: "earned_runs",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="ER" />
+    ),
+    cell: ({ row }) => {
+      return <PlayerStatsCell player={row.original} statId={PITCHING_STAT_IDS.EARNED_RUNS} />;
+    },
+  },
+  {
+    id: "walks_allowed",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="BB" />
+    ),
+    cell: ({ row }) => {
+      return <PlayerStatsCell player={row.original} statId={PITCHING_STAT_IDS.WALKS_ALLOWED} />;
+    },
+  },
+  {
+    id: "hit_by_pitch_allowed",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="HBP" />
+    ),
+    cell: ({ row }) => {
+      return <PlayerStatsCell player={row.original} statId={PITCHING_STAT_IDS.HIT_BY_PITCH_ALLOWED} />;
+    },
+  },
+  {
+    id: "strikeouts",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="K" />
+    ),
+    cell: ({ row }) => {
+      return <PlayerStatsCell player={row.original} statId={PITCHING_STAT_IDS.STRIKEOUTS} />;
+    },
+  },
+  {
+    id: "blown_saves",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="BS" />
+    ),
+    cell: ({ row }) => {
+      return <PlayerStatsCell player={row.original} statId={PITCHING_STAT_IDS.BLOWN_SAVES} />;
+    },
+  },
+];
+
+// Function to get columns based on filter type
+export function getColumns(filterType: PlayerFilterType): ColumnDef<PlayerWithRank>[] {
+  // Determine if this is a pitcher filter
+  const isPitcherFilter = filterType === 'ALL_PITCHERS' || filterType === 'SP' || filterType === 'RP' || filterType === 'P';
+  
+  if (isPitcherFilter) {
+    return [...commonColumns, ...pitcherColumns];
+  } else {
+    return [...commonColumns, ...batterColumns];
+  }
+}
+
+// Default export for backward compatibility (uses batter columns)
+export const columns = getColumns('ALL_BATTERS'); 

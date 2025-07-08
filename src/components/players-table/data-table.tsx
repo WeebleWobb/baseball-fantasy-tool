@@ -22,6 +22,8 @@ import {
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { DataTableMeta } from "@/types/table-pagination"
+import { FilterButtons } from "@/components/players-table/filter-buttons"
+import type { PlayerFilterType } from "@/types/hooks"
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
@@ -31,6 +33,9 @@ interface DataTableProps<TData, TValue> {
   onPageChange?: (page: number) => void
   totalPages?: number
   pageSize?: number
+  activeFilter?: PlayerFilterType
+  onFilterChange?: (filter: PlayerFilterType) => void
+  disabled?: boolean
 }
 
 export function DataTable<TData, TValue>({
@@ -41,6 +46,9 @@ export function DataTable<TData, TValue>({
   onPageChange,
   totalPages = 1,
   pageSize = 25,
+  activeFilter = 'ALL_BATTERS',
+  onFilterChange,
+  disabled = false,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [globalFilter, setGlobalFilter] = React.useState("")
@@ -78,6 +86,16 @@ export function DataTable<TData, TValue>({
 
   return (
     <div className="space-y-4">
+      {/* Filter Buttons */}
+      {onFilterChange && (
+        <FilterButtons
+          activeFilter={activeFilter}
+          onFilterChange={onFilterChange}
+          disabled={disabled}
+        />
+      )}
+      
+      {/* Search Input */}
       <div className="flex items-center py-4">
         <Input
           placeholder="Search Player"
@@ -86,6 +104,8 @@ export function DataTable<TData, TValue>({
           className="max-w-sm"
         />
       </div>
+      
+      {/* Table */}
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -136,6 +156,8 @@ export function DataTable<TData, TValue>({
           </TableBody>
         </Table>
       </div>
+      
+      {/* Pagination */}
       <div className="flex items-center justify-between space-x-2 py-4">
         <div className="text-sm text-muted-foreground">
           Page {pageIndex + 1} of {totalPages}
