@@ -8,6 +8,7 @@ import { getColumns } from "@/components/players-table/columns";
 import { DataTable } from "@/components/players-table/data-table";
 import { getStoredFilter, saveFilter } from "@/lib/filter-state";
 import type { PlayerFilterType } from "@/types/hooks";
+import { playerMatchesFilter } from "@/lib/utils";
 import React from "react";
 
 export default function Home() {
@@ -27,21 +28,27 @@ export default function Home() {
   // Get current season dynamically
   const currentSeason = new Date().getFullYear().toString();
   
+  // Determine playerType for API (ALL_BATTERS or ALL_PITCHERS)
+  const isPitcherFilter = ["ALL_PITCHERS", "SP", "RP"].includes(activeFilter);
+  const playerTypeForApi: PlayerFilterType = isPitcherFilter ? "ALL_PITCHERS" : "ALL_BATTERS";
+
   // Update usePlayers with pagination and filter - always uses current season
   const { data: playersData, isLoading: isLoadingPlayers } = usePlayers({
     start: pageIndex * 25, // 25 players per page
     count: 25,
-    playerType: activeFilter
+    playerType: playerTypeForApi
   });
 
-  // Add global rank to each player for proper sorting across pages
-  const players = React.useMemo(() => {
+  // Apply client-side position filtering
+  const filteredPlayers = React.useMemo(() => {
     if (!playersData) return [];
-    return playersData.map((player, index) => ({
-      ...player,
-      globalRank: pageIndex * 25 + index + 1
-    }));
-  }, [playersData, pageIndex]);
+    return playersData
+      .filter((player) => playerMatchesFilter(player.display_position, activeFilter))
+      .map((player, index) => ({
+        ...player,
+        globalRank: pageIndex * 25 + index + 1
+      }));
+  }, [playersData, activeFilter, pageIndex]);
 
   // Handle filter changes
   const handleFilterChange = React.useCallback((newFilter: PlayerFilterType) => {
@@ -119,7 +126,7 @@ export default function Home() {
         </div>
         <DataTable 
           columns={getColumns(activeFilter)} 
-          data={players} 
+          data={filteredPlayers} 
           isLoading={isLoadingPlayers}
           pageIndex={pageIndex}
           onPageChange={setPageIndex}

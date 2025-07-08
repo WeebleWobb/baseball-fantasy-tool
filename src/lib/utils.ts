@@ -67,10 +67,6 @@ export function playerMatchesFilter(displayPosition: string, filterType: PlayerF
     case 'RP':
       return positions.includes('RP') || positions.includes('P')
     
-    case 'P':
-      // Probable pitchers - for now, treat as all pitchers (will need MLB probable data later)
-      return positions.some(pos => ['P', 'SP', 'RP'].includes(pos))
-    
     default:
       return false
   }

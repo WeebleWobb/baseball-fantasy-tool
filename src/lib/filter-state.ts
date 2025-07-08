@@ -5,7 +5,7 @@ const DEFAULT_FILTER: PlayerFilterType = 'ALL_BATTERS'
 
 // Valid filter values for validation
 const VALID_FILTERS: PlayerFilterType[] = [
-  'ALL_BATTERS', 'ALL_PITCHERS', 'C', '1B', '2B', 'SS', '3B', 'OF', 'Util', 'SP', 'RP', 'P'
+  'ALL_BATTERS', 'ALL_PITCHERS', 'C', '1B', '2B', 'SS', '3B', 'OF', 'Util', 'SP', 'RP'
 ]
 
 /**

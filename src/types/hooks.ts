@@ -9,8 +9,7 @@ export type PlayerFilterType =
   | 'OF'
   | 'Util'
   | 'SP'
-  | 'RP'
-  | 'P';
+  | 'RP';
 
 export interface UsePlayersOptions {
   start?: number;

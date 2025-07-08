@@ -56,7 +56,6 @@ export class YahooFantasyAPI {
       case 'ALL_PITCHERS':
       case 'SP':
       case 'RP':
-      case 'P':
         return 'P'; // Pitchers
       case 'ALL_BATTERS':
       case 'C':

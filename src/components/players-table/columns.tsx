@@ -255,7 +255,7 @@ const pitcherColumns: ColumnDef<PlayerWithRank>[] = [
 // Function to get columns based on filter type
 export function getColumns(filterType: PlayerFilterType): ColumnDef<PlayerWithRank>[] {
   // Determine if this is a pitcher filter
-  const isPitcherFilter = filterType === 'ALL_PITCHERS' || filterType === 'SP' || filterType === 'RP' || filterType === 'P';
+  const isPitcherFilter = filterType === 'ALL_PITCHERS' || filterType === 'SP' || filterType === 'RP';
   
   if (isPitcherFilter) {
     return [...commonColumns, ...pitcherColumns];
