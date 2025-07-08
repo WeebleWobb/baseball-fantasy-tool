@@ -37,11 +37,11 @@ export function useYahooFantasy() {
   };
 
   const usePlayers = (options: UsePlayersOptions = {}) => {
-    const { start = 0, count = 25 } = options;
+    const { start = 0, count = 25, playerType = 'ALL_BATTERS' } = options;
 
     return useQuery({
-      queryKey: ['players', start, count],
-      queryFn: () => api?.getMLBPlayers({ start, count }),
+      queryKey: ['players', start, count, playerType],
+      queryFn: () => api?.getMLBPlayers({ start, count, playerType }),
       enabled: !!api,
       // Current season player list updates frequently during the season
       gcTime: CACHE_DURATIONS.HOUR,
