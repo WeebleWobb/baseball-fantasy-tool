@@ -15,4 +15,13 @@ export interface UsePlayersOptions {
   start?: number;
   count?: number;
   playerType?: PlayerFilterType;
+  fetchAll?: boolean; // New option for comprehensive dataset loading
+}
+
+export interface PlayersQueryResult<T = unknown> {
+  currentPageData?: T[];
+  fullDataset?: T[];
+  isLoadingCurrentPage: boolean;
+  isLoadingFullDataset: boolean;
+  error?: Error;
 } 

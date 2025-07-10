@@ -150,4 +150,66 @@ export class YahooFantasyAPI {
       return [];
     }
   }
+
+  /**
+   * Fetch comprehensive dataset for position-based filtering
+   * This method loads large datasets with progressive loading and retry logic
+   */
+  async getMLBPlayersComprehensive(options: { playerType?: PlayerFilterType; maxPlayers?: number; } = {}): Promise<YahooPlayerStats[]> {
+    const { playerType = 'ALL_BATTERS', maxPlayers = 500 } = options;
+    const batchSize = 25; // Yahoo API typically returns 25 players per request
+    const maxRetries = 3;
+    const retryDelay = 1000; // 1 second
+
+    const allPlayers: YahooPlayerStats[] = [];
+    let currentStart = 0;
+    let hasMorePlayers = true;
+    let consecutiveEmptyResponses = 0;
+
+    while (hasMorePlayers && allPlayers.length < maxPlayers) {
+      let retryCount = 0;
+      let success = false;
+
+      while (retryCount < maxRetries && !success) {
+        try {
+          const batchPlayers = await this.getMLBPlayers({
+            start: currentStart,
+            count: batchSize,
+            playerType
+          });
+
+          if (batchPlayers.length === 0) {
+            consecutiveEmptyResponses++;
+            // Stop if we get 2 consecutive empty responses
+            if (consecutiveEmptyResponses >= 2) {
+              hasMorePlayers = false;
+            }
+          } else {
+            consecutiveEmptyResponses = 0;
+            allPlayers.push(...batchPlayers);
+            
+            // If we got fewer players than requested, we've likely reached the end
+            if (batchPlayers.length < batchSize) {
+              hasMorePlayers = false;
+            }
+          }
+
+          success = true;
+        } catch (error) {
+          retryCount++;
+          if (retryCount < maxRetries) {
+            // Exponential backoff
+            await new Promise(resolve => setTimeout(resolve, retryDelay * Math.pow(2, retryCount - 1)));
+          } else {
+            console.warn(`Failed to fetch players batch starting at ${currentStart} after ${maxRetries} retries:`, error);
+            hasMorePlayers = false;
+          }
+        }
+      }
+
+      currentStart += batchSize;
+    }
+
+    return allPlayers;
+  }
 } 

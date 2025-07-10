@@ -13,7 +13,7 @@ import React from "react";
 
 export default function Home() {
   const { data: session, status } = useSession();
-  const { useUserInfo, usePlayers } = useYahooFantasy();
+  const { useUserInfo, usePlayers, usePlayersComprehensive } = useYahooFantasy();
   const { data: userInfo, isLoading: isLoadingUserInfo } = useUserInfo();
   
   // Add state for pagination
@@ -32,23 +32,97 @@ export default function Home() {
   const isPitcherFilter = ["ALL_PITCHERS", "SP", "RP"].includes(activeFilter);
   const playerTypeForApi: PlayerFilterType = isPitcherFilter ? "ALL_PITCHERS" : "ALL_BATTERS";
 
-  // Update usePlayers with pagination and filter - always uses current season
-  const { data: playersData, isLoading: isLoadingPlayers } = usePlayers({
-    start: pageIndex * 25, // 25 players per page
+  // Determine if we need comprehensive dataset for position-based filtering
+  const needsComprehensiveData = !["ALL_BATTERS", "ALL_PITCHERS"].includes(activeFilter);
+
+  // Progressive loading: Current page (immediate) + Full dataset (background when needed)
+  const { data: currentPageData, isLoading: isLoadingCurrentPage } = usePlayers({
+    start: pageIndex * 25,
     count: 25,
     playerType: playerTypeForApi
   });
 
-  // Apply client-side position filtering
-  const filteredPlayers = React.useMemo(() => {
-    if (!playersData) return [];
-    return playersData
-      .filter((player) => playerMatchesFilter(player.display_position, activeFilter))
-      .map((player, index) => ({
-        ...player,
-        globalRank: pageIndex * 25 + index + 1
-      }));
-  }, [playersData, activeFilter, pageIndex]);
+  // Comprehensive dataset loading (background, only when needed for position filtering)
+  const { data: fullDataset, isLoading: isLoadingFullDataset } = usePlayersComprehensive({
+    playerType: playerTypeForApi,
+    fetchAll: needsComprehensiveData
+  });
+
+  // Smart data selection and filtering
+  const { filteredPlayers, totalFilteredCount, isLoading } = React.useMemo(() => {
+    // Determine which dataset to use
+    const useComprehensiveData = needsComprehensiveData && fullDataset && fullDataset.length > 0;
+    const sourceData = useComprehensiveData ? fullDataset : currentPageData;
+    
+    if (!sourceData) {
+      return {
+        filteredPlayers: [],
+        totalFilteredCount: 0,
+        isLoading: isLoadingCurrentPage || (needsComprehensiveData && isLoadingFullDataset)
+      };
+    }
+
+    // Apply position-based filtering
+    const filtered = sourceData.filter((player) => 
+      playerMatchesFilter(player.display_position, activeFilter)
+    );
+
+    // For comprehensive data, implement client-side pagination
+    let paginatedData = filtered;
+    if (useComprehensiveData) {
+      const startIndex = pageIndex * 25;
+      paginatedData = filtered.slice(startIndex, startIndex + 25);
+    }
+
+    // Add global rank based on filtered dataset
+    const playersWithRank = paginatedData.map((player, index) => ({
+      ...player,
+      globalRank: useComprehensiveData 
+        ? (pageIndex * 25) + index + 1 // True pagination rank
+        : (pageIndex * 25) + index + 1  // Current page rank
+    }));
+
+    return {
+      filteredPlayers: playersWithRank,
+      totalFilteredCount: filtered.length,
+      isLoading: isLoadingCurrentPage || (needsComprehensiveData && isLoadingFullDataset)
+    };
+  }, [
+    currentPageData, 
+    fullDataset, 
+    activeFilter, 
+    pageIndex, 
+    needsComprehensiveData, 
+    isLoadingCurrentPage, 
+    isLoadingFullDataset
+  ]);
+
+  // Calculate total pages based on filtered data
+  const totalPages = React.useMemo(() => {
+    if (needsComprehensiveData && totalFilteredCount > 0) {
+      return Math.ceil(totalFilteredCount / 25);
+    }
+    return 4; // Default fallback for non-comprehensive data
+  }, [needsComprehensiveData, totalFilteredCount]);
+
+  // Memoized loading state message for better UX
+  const loadingMessage = React.useMemo(() => {
+    if (needsComprehensiveData && isLoadingFullDataset) {
+      return "Loading comprehensive dataset for position filtering...";
+    }
+    if (isLoadingCurrentPage) {
+      return "Loading players...";
+    }
+    return null;
+  }, [needsComprehensiveData, isLoadingFullDataset, isLoadingCurrentPage]);
+
+  // Memoized filter result message
+  const filterResultMessage = React.useMemo(() => {
+    if (needsComprehensiveData && totalFilteredCount > 0) {
+      return `Showing ${totalFilteredCount} players matching ${activeFilter} filter`;
+    }
+    return null;
+  }, [needsComprehensiveData, totalFilteredCount, activeFilter]);
 
   // Handle filter changes
   const handleFilterChange = React.useCallback((newFilter: PlayerFilterType) => {
@@ -123,17 +197,23 @@ export default function Home() {
       <main className="p-8">
         <div className="mb-6">
           <h2 className="text-xl font-semibold">MLB Players - {currentSeason} Season</h2>
+          {loadingMessage && (
+            <p className="text-sm text-gray-600 mt-1">{loadingMessage}</p>
+          )}
+          {filterResultMessage && (
+            <p className="text-sm text-gray-600 mt-1">{filterResultMessage}</p>
+          )}
         </div>
         <DataTable 
           columns={getColumns(activeFilter)} 
           data={filteredPlayers} 
-          isLoading={isLoadingPlayers}
+          isLoading={isLoading}
           pageIndex={pageIndex}
           onPageChange={setPageIndex}
-          totalPages={4} // This is hardcoded for now, ideally should come from API
+          totalPages={totalPages}
           activeFilter={activeFilter}
           onFilterChange={handleFilterChange}
-          disabled={isLoadingPlayers}
+          disabled={isLoading}
         />
       </main>
     </>
