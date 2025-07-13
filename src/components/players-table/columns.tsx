@@ -148,7 +148,11 @@ const pitcherColumns: ColumnDef<PlayerWithRank>[] = [
       <DataTableColumnHeader column={column} title="IP" />
     ),
     cell: ({ row }) => {
-      return <PlayerStatsCell player={row.original} statId={PITCHING_STAT_IDS.INNINGS_PITCHED} />;
+      return <PlayerStatsCell 
+        player={row.original} 
+        statId={PITCHING_STAT_IDS.INNINGS_PITCHED}
+        format={(value) => parseFloat(value.toString()).toFixed(1)}
+      />;
     },
   },
   {
@@ -157,7 +161,11 @@ const pitcherColumns: ColumnDef<PlayerWithRank>[] = [
       <DataTableColumnHeader column={column} title="WHIP" />
     ),
     cell: ({ row }) => {
-      return <PlayerStatsCell player={row.original} statId={PITCHING_STAT_IDS.WHIP} />;
+      return <PlayerStatsCell 
+        player={row.original} 
+        statId={PITCHING_STAT_IDS.WHIP}
+        format={(value) => parseFloat(value.toString()).toFixed(2)}
+      />;
     },
   },
   {
@@ -166,7 +174,11 @@ const pitcherColumns: ColumnDef<PlayerWithRank>[] = [
       <DataTableColumnHeader column={column} title="ERA" />
     ),
     cell: ({ row }) => {
-      return <PlayerStatsCell player={row.original} statId={PITCHING_STAT_IDS.ERA} />;
+      return <PlayerStatsCell 
+        player={row.original} 
+        statId={PITCHING_STAT_IDS.ERA}
+        format={(value) => parseFloat(value.toString()).toFixed(2)}
+      />;
     },
   },
   {
