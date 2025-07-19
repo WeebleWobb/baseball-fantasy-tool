@@ -4,6 +4,12 @@ import {
   mockPlayersResponse, 
   mockUserInfo 
 } from '@/__tests__/utils/test-fixtures'
+import { 
+  createMockPlayersResponse,
+  createEmptyPlayersResponse, 
+  createMockPlayerData 
+} from '@/__tests__/utils/test-helpers'
+import { BATTING_STAT_IDS } from '@/lib/constants'
 import axios from 'axios'
 
 // Simple inline mock
@@ -91,46 +97,191 @@ describe('YahooFantasyAPI', () => {
         display_position: 'OF',
         player_stats: {
           stats: [
-            { stat_id: 8, value: 150 }, // HITS
-            { stat_id: 6, value: 500 }, // AT_BATS
-            { stat_id: 13, value: 35 }, // HOME_RUNS
-            { stat_id: 9, value: 100 }, // RBI
-            { stat_id: 7, value: 90 },  // RUNS
-            { stat_id: 16, value: 15 }  // STOLEN_BASES
+            { stat_id: BATTING_STAT_IDS.HITS, value: 150 },
+            { stat_id: BATTING_STAT_IDS.AT_BATS, value: 500 },
+            { stat_id: BATTING_STAT_IDS.HOME_RUNS, value: 35 },
+            { stat_id: BATTING_STAT_IDS.RBI, value: 100 },
+            { stat_id: BATTING_STAT_IDS.RUNS, value: 90 },
+            { stat_id: BATTING_STAT_IDS.STOLEN_BASES, value: 15 }
           ]
         }
       })
       expect(players[1].display_position).toBe('2B,OF') // Multiple positions
     })
 
-    it('should use pagination parameters correctly', async () => {
-      await api.getMLBPlayers({ start: 25, count: 50 })
+    it('should handle different player types correctly', async () => {
+      const emptyResponse = createEmptyPlayersResponse()
       
-      expect(mockedAxios.get).toHaveBeenCalledWith('/api/yahoo', 
-        expect.objectContaining({
-          params: expect.objectContaining({
-            endpoint: expect.stringContaining('start=25;count=50')
-          })
-        })
-      )
+      // Test batter types
+      mockedAxios.get
+        .mockResolvedValueOnce({ data: mockGameResponse })
+        .mockResolvedValueOnce({ data: emptyResponse })
+      await api.getMLBPlayers({ playerType: 'ALL_BATTERS' })
+      expect(mockedAxios.get).toHaveBeenLastCalledWith('/api/yahoo', {
+        params: expect.objectContaining({
+          endpoint: expect.stringContaining('position=B/stats')
+        }),
+        headers: { 'Authorization': `Bearer ${mockAccessToken}` }
+      })
+      
+      // Test pitcher types
+      mockedAxios.get
+        .mockResolvedValueOnce({ data: mockGameResponse })
+        .mockResolvedValueOnce({ data: emptyResponse })
+      await api.getMLBPlayers({ playerType: 'ALL_PITCHERS' })
+      expect(mockedAxios.get).toHaveBeenLastCalledWith('/api/yahoo', {
+        params: expect.objectContaining({
+          endpoint: expect.stringContaining('position=P/stats')
+        }),
+        headers: { 'Authorization': `Bearer ${mockAccessToken}` }
+      })
     })
 
-    it('should return empty array when API fails or returns malformed data', async () => {
+    it('should handle API failures and empty responses gracefully', async () => {
       // Test API error
       mockedAxios.get.mockReset()
-      mockedAxios.get.mockRejectedValue(new Error('API Error'))
+      mockedAxios.get.mockRejectedValue(new Error('Network Error'))
       
       const playersError = await api.getMLBPlayers()
       expect(playersError).toEqual([])
       
-      // Test malformed response
+      // Test empty response
       mockedAxios.get.mockReset()
       mockedAxios.get
         .mockResolvedValueOnce({ data: mockGameResponse })
-        .mockResolvedValueOnce({ data: { fantasy_content: null } })
+        .mockResolvedValueOnce({ data: createEmptyPlayersResponse() })
       
-      const playersMalformed = await api.getMLBPlayers()
-      expect(playersMalformed).toEqual([])
+      const playersEmpty = await api.getMLBPlayers()
+      expect(playersEmpty).toEqual([])
+    })
+
+    it('should handle missing player stats gracefully', async () => {
+      const playerWithoutStats = createMockPlayersResponse(1, [
+        createMockPlayerData({
+          player_key: '431.p.1234',
+          name: { full: 'No Stats Player', first: 'No Stats', last: 'Player' },
+          editorial_team_abbr: 'TEST',
+          display_position: 'OF'
+          // No player_stats object - will use default empty stats
+        })
+      ])
+
+      mockedAxios.get.mockReset()
+      mockedAxios.get
+        .mockResolvedValueOnce({ data: mockGameResponse })
+        .mockResolvedValueOnce({ data: playerWithoutStats })
+
+      const players = await api.getMLBPlayers()
+      
+      expect(players).toHaveLength(1)
+      expect(players[0].player_stats?.stats).toEqual([])
+    })
+  })
+
+  describe('getMLBPlayersComprehensive', () => {
+    it('should fetch and combine multiple batches of players', async () => {
+      // Create multiple batches of player data
+      const batch1 = createMockPlayersResponse(25, Array.from({ length: 25 }, (_, i) => 
+        createMockPlayerData({
+          player_key: `431.p.${1000 + i}`,
+          name: { full: `Player ${i + 1}`, first: `Player`, last: `${i + 1}` }
+        })
+      ))
+      
+      const batch2 = createMockPlayersResponse(20, Array.from({ length: 20 }, (_, i) => 
+        createMockPlayerData({
+          player_key: `431.p.${2000 + i}`,
+          name: { full: `Player ${i + 26}`, first: `Player`, last: `${i + 26}` }
+        })
+      ))
+
+      // Mock API calls: game key + two batches + empty (signals end)
+      mockedAxios.get
+        .mockResolvedValueOnce({ data: mockGameResponse }) // Game key request
+        .mockResolvedValueOnce({ data: batch1 }) // First batch: 25 players
+        .mockResolvedValueOnce({ data: batch2 }) // Second batch: 20 players (partial = end)
+
+      const players = await api.getMLBPlayersComprehensive({ maxPlayers: 100 })
+
+      // Should combine both batches
+      expect(players).toHaveLength(45) // 25 + 20
+      expect(players[0].name.full).toBe('Player 1')
+      expect(players[24].name.full).toBe('Player 25')
+      expect(players[25].name.full).toBe('Player 26') // First player from second batch
+      expect(players[44].name.full).toBe('Player 45') // Last player from second batch
+    })
+
+    it('should respect maxPlayers parameter', async () => {
+      const largeBatch = createMockPlayersResponse(25, Array.from({ length: 25 }, (_, i) => 
+        createMockPlayerData({
+          player_key: `431.p.${i}`,
+          name: { full: `Player ${i + 1}`, first: `Player`, last: `${i + 1}` }
+        })
+      ))
+
+      // Mock to return the same batch multiple times
+      mockedAxios.get
+        .mockResolvedValueOnce({ data: mockGameResponse }) // Game key
+        .mockResolvedValueOnce({ data: largeBatch }) // First batch: 25 players
+        .mockResolvedValueOnce({ data: largeBatch }) // Second batch: 25 players (would be 50 total)
+
+      const players = await api.getMLBPlayersComprehensive({ maxPlayers: 30 })
+
+      // Should stop after hitting maxPlayers limit
+      expect(players.length).toBeGreaterThanOrEqual(25) // At least first batch
+      expect(players.length).toBeLessThanOrEqual(50) // But not unlimited
+    })
+
+    it('should pass playerType parameter to underlying API calls', async () => {
+      const pitcherBatch = createMockPlayersResponse(5, Array.from({ length: 5 }, (_, i) => 
+        createMockPlayerData({
+          player_key: `431.p.${i}`,
+          name: { full: `Pitcher ${i + 1}`, first: `Pitcher`, last: `${i + 1}` },
+          display_position: 'P'
+        })
+      ))
+
+      mockedAxios.get
+        .mockResolvedValueOnce({ data: mockGameResponse }) // Game key
+        .mockResolvedValueOnce({ data: pitcherBatch }) // Pitcher data
+        .mockResolvedValueOnce({ data: createEmptyPlayersResponse() }) // Empty signals end
+
+      const players = await api.getMLBPlayersComprehensive({ playerType: 'ALL_PITCHERS' })
+
+      expect(players).toHaveLength(5)
+      // Verify the API was called with pitcher position parameter
+      expect(mockedAxios.get).toHaveBeenCalledWith('/api/yahoo', {
+        params: expect.objectContaining({
+          endpoint: expect.stringContaining('position=P')
+        }),
+        headers: { 'Authorization': 'Bearer test-access-token' }
+      })
+    })
+
+    it('should handle API errors gracefully', async () => {
+      mockedAxios.get.mockRejectedValue(new Error('Network error'))
+
+      const players = await api.getMLBPlayersComprehensive()
+
+      expect(players).toEqual([])
+    })
+
+    it('should stop when receiving empty response', async () => {
+      const singleBatch = createMockPlayersResponse(15, Array.from({ length: 15 }, (_, i) => 
+        createMockPlayerData({
+          player_key: `431.p.${i}`,
+          name: { full: `Player ${i + 1}`, first: `Player`, last: `${i + 1}` }
+        })
+      ))
+
+      mockedAxios.get
+        .mockResolvedValueOnce({ data: mockGameResponse }) // Game key
+        .mockResolvedValueOnce({ data: singleBatch }) // 15 players (less than batch size)
+
+      const players = await api.getMLBPlayersComprehensive()
+
+      expect(players).toHaveLength(15)
+      // Should stop because batch was smaller than 25 (the batch size)
     })
   })
 }) 

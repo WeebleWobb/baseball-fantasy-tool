@@ -69,38 +69,29 @@ describe('DataTable Integration', () => {
     expect(screen.getByText('10')).toBeInTheDocument()
   })
 
-  it('should filter players based on search input', () => {
-    setup()
+  it('should handle search input interactions', () => {
+    const mockOnSearchChange = jest.fn()
+    
+    setup(mockPlayersWithRank, {
+      searchTerm: "",
+      onSearchChange: mockOnSearchChange
+    })
 
-    // Initially all players should be visible
-    expect(screen.getByText('Mike Trout')).toBeInTheDocument()
-    expect(screen.getByText('Mookie Betts')).toBeInTheDocument()
-    expect(screen.getByText('Rookie Player')).toBeInTheDocument()
-
-    // Find and use the search input
+    // Find the search input
     const searchInput = screen.getByPlaceholderText('Search Player')
     expect(searchInput).toBeInTheDocument()
+    expect(searchInput).toHaveValue("")
 
-    // Search for "Mike" - should show only Mike Trout
+    // Test search input interaction with player name
     fireEvent.change(searchInput, { target: { value: 'Mike' } })
-    
-    expect(screen.getByText('Mike Trout')).toBeInTheDocument()
-    expect(screen.queryByText('Mookie Betts')).not.toBeInTheDocument()
-    expect(screen.queryByText('Rookie Player')).not.toBeInTheDocument()
+    expect(mockOnSearchChange).toHaveBeenCalledWith('Mike')
 
-    // Search for "LAD" (team) - should show only Mookie Betts
-    fireEvent.change(searchInput, { target: { value: 'LAD' } })
-    
-    expect(screen.queryByText('Mike Trout')).not.toBeInTheDocument()
-    expect(screen.getByText('Mookie Betts')).toBeInTheDocument()
-    expect(screen.queryByText('Rookie Player')).not.toBeInTheDocument()
+    // Test search with last name
+    fireEvent.change(searchInput, { target: { value: 'Trout' } })
+    expect(mockOnSearchChange).toHaveBeenCalledWith('Trout')
 
-    // Clear search - should show all players again
-    fireEvent.change(searchInput, { target: { value: '' } })
-    
-    expect(screen.getByText('Mike Trout')).toBeInTheDocument()
-    expect(screen.getByText('Mookie Betts')).toBeInTheDocument()
-    expect(screen.getByText('Rookie Player')).toBeInTheDocument()
+    // Verify the callback was called correctly
+    expect(mockOnSearchChange).toHaveBeenCalledTimes(2)
   })
 
   it('should handle pagination controls correctly', () => {

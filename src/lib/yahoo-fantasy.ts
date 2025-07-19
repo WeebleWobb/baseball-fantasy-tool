@@ -5,6 +5,7 @@ import type {
   YahooPlayerStats,
   YahooPlayersResponse,
 } from '@/types/yahoo-fantasy';
+import type { PlayerFilterType } from '@/types/hooks';
 
 export class YahooFantasyAPI {
   private accessToken: string;
@@ -49,14 +50,35 @@ export class YahooFantasyAPI {
     return gameKey;
   }
 
-  async getMLBPlayers(options: { start?: number; count?: number; } = {}): Promise<YahooPlayerStats[]> {
-    const { start = 0, count = 25 } = options;
+  private getYahooPositionParameter(playerType: PlayerFilterType = 'ALL_BATTERS'): string {
+    // Map filter types to Yahoo API position parameters
+    switch (playerType) {
+      case 'ALL_PITCHERS':
+      case 'SP':
+      case 'RP':
+        return 'P'; // Pitchers
+      case 'ALL_BATTERS':
+      case 'C':
+      case '1B':
+      case '2B':
+      case 'SS':
+      case '3B':
+      case 'OF':
+      case 'Util':
+      default:
+        return 'B'; // Batters
+    }
+  }
+
+  async getMLBPlayers(options: { start?: number; count?: number; playerType?: PlayerFilterType; } = {}): Promise<YahooPlayerStats[]> {
+    const { start = 0, count = 25, playerType = 'ALL_BATTERS' } = options;
 
     try {
       const gameKey = await this.getMLBGameKey();
+      const positionParam = this.getYahooPositionParameter(playerType);
       
-      // Request players with their season stats
-      const endpoint = `/game/${gameKey}/players;start=${start};count=${count};sort=AR;status=A;position=B/stats`;
+      // Request players with their season stats, using dynamic position parameter
+      const endpoint = `/game/${gameKey}/players;start=${start};count=${count};sort=AR;status=A;position=${positionParam}/stats`;
       const response = await this.request<YahooPlayersResponse>(endpoint);
       
       const playersData = response?.fantasy_content?.game?.[1]?.players;
@@ -127,5 +149,67 @@ export class YahooFantasyAPI {
     } catch {
       return [];
     }
+  }
+
+  /**
+   * Fetch comprehensive dataset for position-based filtering
+   * This method loads large datasets with progressive loading and retry logic
+   */
+  async getMLBPlayersComprehensive(options: { playerType?: PlayerFilterType; maxPlayers?: number; } = {}): Promise<YahooPlayerStats[]> {
+    const { playerType = 'ALL_BATTERS', maxPlayers = 500 } = options;
+    const batchSize = 25; // Yahoo API typically returns 25 players per request
+    const maxRetries = 3;
+    const retryDelay = 1000; // 1 second
+
+    const allPlayers: YahooPlayerStats[] = [];
+    let currentStart = 0;
+    let hasMorePlayers = true;
+    let consecutiveEmptyResponses = 0;
+
+    while (hasMorePlayers && allPlayers.length < maxPlayers) {
+      let retryCount = 0;
+      let success = false;
+
+      while (retryCount < maxRetries && !success) {
+        try {
+          const batchPlayers = await this.getMLBPlayers({
+            start: currentStart,
+            count: batchSize,
+            playerType
+          });
+
+          if (batchPlayers.length === 0) {
+            consecutiveEmptyResponses++;
+            // Stop if we get 2 consecutive empty responses
+            if (consecutiveEmptyResponses >= 2) {
+              hasMorePlayers = false;
+            }
+          } else {
+            consecutiveEmptyResponses = 0;
+            allPlayers.push(...batchPlayers);
+            
+            // If we got fewer players than requested, we've likely reached the end
+            if (batchPlayers.length < batchSize) {
+              hasMorePlayers = false;
+            }
+          }
+
+          success = true;
+        } catch (error) {
+          retryCount++;
+          if (retryCount < maxRetries) {
+            // Exponential backoff
+            await new Promise(resolve => setTimeout(resolve, retryDelay * Math.pow(2, retryCount - 1)));
+          } else {
+            console.warn(`Failed to fetch players batch starting at ${currentStart} after ${maxRetries} retries:`, error);
+            hasMorePlayers = false;
+          }
+        }
+      }
+
+      currentStart += batchSize;
+    }
+
+    return allPlayers;
   }
 } 

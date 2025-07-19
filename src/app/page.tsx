@@ -4,35 +4,145 @@ import { useSession, signIn, signOut } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { useYahooFantasy } from "@/hooks/use-yahoo-fantasy";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { columns } from "@/components/players-table/columns";
+import { getColumns } from "@/components/players-table/columns";
 import { DataTable } from "@/components/players-table/data-table";
+import { getStoredFilter, saveFilter } from "@/lib/filter-state";
+import type { PlayerFilterType } from "@/types/hooks";
+import { playerMatchesFilter } from "@/lib/utils";
+import { FILTER_LABELS } from "@/lib/constants";
 import React from "react";
 
 export default function Home() {
   const { data: session, status } = useSession();
-  const { useUserInfo, usePlayers } = useYahooFantasy();
+  const { useUserInfo, usePlayersComprehensive } = useYahooFantasy();
   const { data: userInfo, isLoading: isLoadingUserInfo } = useUserInfo();
   
   // Add state for pagination
   const [pageIndex, setPageIndex] = React.useState(0);
   
+  // Add search state management
+  const [searchTerm, setSearchTerm] = React.useState("");
+  
+  // Add filter state management with localStorage initialization
+  const [activeFilter, setActiveFilter] = React.useState<PlayerFilterType>(() => {
+    // Initialize from localStorage on component mount
+    return getStoredFilter();
+  });
+  
   // Get current season dynamically
   const currentSeason = new Date().getFullYear().toString();
   
-  // Update usePlayers with pagination - always uses current season
-  const { data: playersData, isLoading: isLoadingPlayers } = usePlayers({
-    start: pageIndex * 25, // 25 players per page
-    count: 25
+  // Determine playerType for API (ALL_BATTERS or ALL_PITCHERS)
+  const isPitcherFilter = ["ALL_PITCHERS", "SP", "RP"].includes(activeFilter);
+  const playerTypeForApi: PlayerFilterType = isPitcherFilter ? "ALL_PITCHERS" : "ALL_BATTERS";
+
+  // Load comprehensive dataset for all filters - simplified approach
+  const { data: fullDataset, isLoading: isLoadingFullDataset } = usePlayersComprehensive({
+    playerType: playerTypeForApi,
+    fetchAll: true
   });
 
-  // Add global rank to each player for proper sorting across pages
-  const players = React.useMemo(() => {
-    if (!playersData) return [];
-    return playersData.map((player, index) => ({
+  // Apply filtering and pagination to comprehensive dataset
+  const { filteredPlayers, totalFilteredCount, totalPages, isLoading } = React.useMemo(() => {
+    if (!fullDataset || fullDataset.length === 0) {
+      return {
+        filteredPlayers: [],
+        totalFilteredCount: 0,
+        totalPages: 1,
+        isLoading: isLoadingFullDataset
+      };
+    }
+
+    // Apply position-based filtering to the entire dataset
+    const positionFiltered = fullDataset.filter((player) => 
+      playerMatchesFilter(player.display_position, activeFilter)
+    );
+
+    // Apply search filtering across the entire dataset
+    const searchFiltered = positionFiltered.filter((player) => {
+      if (!searchTerm.trim()) return true; // No search term, show all
+      
+      const searchLower = searchTerm.toLowerCase();
+      return (
+        player.name?.full?.toLowerCase().includes(searchLower) ||
+        player.name?.first?.toLowerCase().includes(searchLower) ||
+        player.name?.last?.toLowerCase().includes(searchLower)
+      );
+    });
+
+    // Calculate pagination based on search-filtered results
+    const itemsPerPage = 25;
+    const totalPagesCount = Math.ceil(searchFiltered.length / itemsPerPage);
+    
+    // Get current page data
+    const startIndex = pageIndex * itemsPerPage;
+    const paginatedData = searchFiltered.slice(startIndex, startIndex + itemsPerPage);
+
+    // Add global rank based on search-filtered dataset position
+    const playersWithRank = paginatedData.map((player, index) => ({
       ...player,
-      globalRank: pageIndex * 25 + index + 1
+      globalRank: startIndex + index + 1 // True global rank in search-filtered dataset
     }));
-  }, [playersData, pageIndex]);
+
+    return {
+      filteredPlayers: playersWithRank,
+      totalFilteredCount: searchFiltered.length,
+      totalPages: totalPagesCount,
+      isLoading: isLoadingFullDataset
+    };
+  }, [
+    fullDataset, 
+    activeFilter, 
+    searchTerm, // Add searchTerm to dependencies
+    pageIndex, 
+    isLoadingFullDataset
+  ]);
+
+  // Memoized loading state message for better UX
+  const loadingMessage = React.useMemo(() => {
+    if (isLoadingFullDataset) {
+      return "Loading player dataset...";
+    }
+    return null;
+  }, [isLoadingFullDataset]);
+
+  // Memoized filter result message
+  const filterResultMessage = React.useMemo(() => {
+    // Always show filter result message if we have data
+    if (filteredPlayers.length > 0 || totalFilteredCount > 0) {
+      const displayName = FILTER_LABELS[activeFilter] || activeFilter;
+      const count = totalFilteredCount > 0 ? totalFilteredCount : filteredPlayers.length;
+      
+      if (searchTerm.trim()) {
+        return `Showing ${count} players matching "${searchTerm}" in ${displayName} filter`;
+      } else {
+        return `Showing ${count} players matching ${displayName} filter`;
+      }
+    }
+    return null;
+  }, [filteredPlayers.length, totalFilteredCount, activeFilter, searchTerm]);
+
+  // Memoized columns to prevent recreation on each render
+  const columns = React.useMemo(() => {
+    return getColumns(activeFilter);
+  }, [activeFilter]);
+
+  // Handle filter changes
+  const handleFilterChange = React.useCallback((newFilter: PlayerFilterType) => {
+    setActiveFilter(newFilter);
+    // Reset pagination and search when filter changes to avoid empty pages
+    setPageIndex(0);
+    setSearchTerm("");
+    // Persist filter change to localStorage
+    saveFilter(newFilter);
+  }, []);
+
+  // Handle search changes
+  const handleSearchChange = React.useCallback((newSearchTerm: string) => {
+    setSearchTerm(newSearchTerm);
+    // Reset pagination when search changes
+    setPageIndex(0);
+  }, []);
 
   const handleSignIn = () => {
     signIn('yahoo', { callbackUrl: '/' })
@@ -98,14 +208,25 @@ export default function Home() {
       <main className="p-8">
         <div className="mb-6">
           <h2 className="text-xl font-semibold">MLB Players - {currentSeason} Season</h2>
+          {loadingMessage && (
+            <p className="text-sm text-gray-600 mt-1">{loadingMessage}</p>
+          )}
+          {filterResultMessage && (
+            <p className="text-sm text-gray-600 mt-1">{filterResultMessage}</p>
+          )}
         </div>
         <DataTable 
           columns={columns} 
-          data={players} 
-          isLoading={isLoadingPlayers}
+          data={filteredPlayers} 
+          isLoading={isLoading}
           pageIndex={pageIndex}
           onPageChange={setPageIndex}
-          totalPages={4} // This is hardcoded for now, ideally should come from API
+          totalPages={totalPages}
+          activeFilter={activeFilter}
+          onFilterChange={handleFilterChange}
+          disabled={isLoading}
+          searchTerm={searchTerm}
+          onSearchChange={handleSearchChange}
         />
       </main>
     </>

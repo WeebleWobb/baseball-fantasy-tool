@@ -6,7 +6,6 @@ import {
   flexRender,
   getCoreRowModel,
   getSortedRowModel,
-  getFilteredRowModel,
   useReactTable,
   SortingState,
 } from "@tanstack/react-table"
@@ -22,6 +21,8 @@ import {
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { DataTableMeta } from "@/types/table-pagination"
+import { FilterButtons } from "@/components/players-table/filter-buttons"
+import type { PlayerFilterType } from "@/types/hooks"
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
@@ -31,6 +32,11 @@ interface DataTableProps<TData, TValue> {
   onPageChange?: (page: number) => void
   totalPages?: number
   pageSize?: number
+  activeFilter?: PlayerFilterType
+  onFilterChange?: (filter: PlayerFilterType) => void
+  disabled?: boolean
+  searchTerm?: string
+  onSearchChange?: (searchTerm: string) => void
 }
 
 export function DataTable<TData, TValue>({
@@ -41,21 +47,22 @@ export function DataTable<TData, TValue>({
   onPageChange,
   totalPages = 1,
   pageSize = 25,
+  activeFilter = 'ALL_BATTERS',
+  onFilterChange,
+  disabled = false,
+  searchTerm = "",
+  onSearchChange,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([])
-  const [globalFilter, setGlobalFilter] = React.useState("")
 
   const table = useReactTable({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
     onSortingChange: setSorting,
-    onGlobalFilterChange: setGlobalFilter,
     state: {
       sorting,
-      globalFilter,
     },
     meta: {
       pageIndex,
@@ -78,14 +85,26 @@ export function DataTable<TData, TValue>({
 
   return (
     <div className="space-y-4">
+      {/* Filter Buttons */}
+      {onFilterChange && (
+        <FilterButtons
+          activeFilter={activeFilter}
+          onFilterChange={onFilterChange}
+          disabled={disabled}
+        />
+      )}
+      
+      {/* Search Input */}
       <div className="flex items-center py-4">
         <Input
           placeholder="Search Player"
-          value={globalFilter ?? ""}
-          onChange={(event) => setGlobalFilter(event.target.value)}
+          value={searchTerm ?? ""}
+          onChange={(event) => onSearchChange?.(event.target.value)}
           className="max-w-sm"
         />
       </div>
+      
+      {/* Table */}
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -136,6 +155,8 @@ export function DataTable<TData, TValue>({
           </TableBody>
         </Table>
       </div>
+      
+      {/* Pagination */}
       <div className="flex items-center justify-between space-x-2 py-4">
         <div className="text-sm text-muted-foreground">
           Page {pageIndex + 1} of {totalPages}
