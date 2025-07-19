@@ -1,9 +1,9 @@
 'use client';
 
-import { useSession, signIn, signOut } from "next-auth/react";
+import { useSession, signIn } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { useYahooFantasy } from "@/hooks/use-yahoo-fantasy";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { AppHeader } from "@/components/app-header";
 import { getColumns } from "@/components/players-table/columns";
 import { DataTable } from "@/components/players-table/data-table";
 import { getStoredFilter, saveFilter } from "@/lib/filter-state";
@@ -148,10 +148,6 @@ export default function Home() {
     signIn('yahoo', { callbackUrl: '/' })
   }
 
-  const handleSignOut = () => {
-    signOut({ redirect: true, callbackUrl: "/" })
-  }
-
   if (status === "loading" || isLoadingUserInfo) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -177,34 +173,16 @@ export default function Home() {
     );
   }
 
-  const userName = userInfo?.fantasy_content?.users?.[0]?.user?.[1]?.profile?.display_name;
-  const userProfileUrl = userInfo?.fantasy_content?.users?.[0]?.user?.[1]?.profile?.fantasy_profile_url;
-  const userImageUrl = userInfo?.fantasy_content?.users?.[0]?.user?.[1]?.profile?.image_url;
+  // Extract user profile data for AppHeader
+  const userProfile = {
+    displayName: userInfo?.fantasy_content?.users?.[0]?.user?.[1]?.profile?.display_name,
+    profileUrl: userInfo?.fantasy_content?.users?.[0]?.user?.[1]?.profile?.fantasy_profile_url,
+    imageUrl: userInfo?.fantasy_content?.users?.[0]?.user?.[1]?.profile?.image_url,
+  };
 
   return (
     <>
-      <header className="flex justify-between items-center p-4">
-        <div className="flex items-center gap-2">
-          <Avatar>
-            <AvatarImage src={userImageUrl || ''} alt="User Profile" />
-            <AvatarFallback>{userName?.[0]?.toUpperCase() || 'U'}</AvatarFallback>
-          </Avatar>
-          <h1 className="text-2xl font-bold">Welcome, {userName || 'User'}</h1>
-        </div>
-        <div className="flex items-center space-x-3">
-            <a
-              href={`${userProfileUrl}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-[#7d2eff] hover:underline"
-            >
-              View Profile
-            </a>
-          <Button variant="outline" onClick={handleSignOut}>
-            Sign Out
-          </Button>
-        </div>
-      </header>
+      <AppHeader userProfile={userProfile} />
       <main className="p-8">
         <div className="mb-6">
           <h2 className="text-xl font-semibold">MLB Players - {currentSeason} Season</h2>
