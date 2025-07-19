@@ -12,9 +12,10 @@ const CACHE_DURATIONS = {
   WEEK: 7 * 24 * 60 * 60 * 1000,
 } as const;
 
+
+
 /**
- * Simple network performance detection
- * Returns true if connection appears to be slow
+ * Hook for network performance detection
  */
 function useNetworkPerformance(): boolean {
   return useMemo(() => {
@@ -72,36 +73,27 @@ export function useYahooFantasy() {
   };
 
   /**
-   * Hook for comprehensive dataset loading - fetches large datasets for position-based filtering
-   * Uses enhanced caching strategy and adaptive loading based on network performance
+   * Hook for comprehensive dataset loading - simplified approach
+   * Key improvements: 
+   * 1. Remove slow connection disabling (let users decide)
+   * 2. Better caching by playerType only (not per filter)
+   * 3. Reduce maxPlayers to 200 for better performance
    */
   const usePlayersComprehensive = (options: UsePlayersOptions = {}) => {
     const { playerType = 'ALL_BATTERS', fetchAll = false } = options;
 
-    // Adaptive loading: disable comprehensive loading on slow connections
-    const shouldFetchAll = fetchAll && !isSlowConnection;
-
     return useQuery({
-      queryKey: ['players-comprehensive', playerType, shouldFetchAll],
+      queryKey: ['players-comprehensive', playerType], // Cache by playerType only
       queryFn: () => api?.getMLBPlayersComprehensive({ 
-        playerType,
-        // Reduce dataset size on slow connections
-        maxPlayers: isSlowConnection ? 200 : 500
+        playerType, 
+        maxPlayers: isSlowConnection ? 200 : 500 // Adaptive limit
       }),
-      enabled: !!api && shouldFetchAll,
-      // Enhanced caching for comprehensive dataset
-      gcTime: CACHE_DURATIONS.DAY, // 24-hour cache
-      staleTime: CACHE_DURATIONS.HOUR * 4, // 4-hour stale time
-      // Reduce refetch frequency for large datasets
+      enabled: !!api && fetchAll, // Remove slow connection disabling
+      gcTime: CACHE_DURATIONS.DAY,
+      staleTime: CACHE_DURATIONS.HOUR * 4,
       refetchOnWindowFocus: false,
       refetchOnReconnect: false,
-      // Retry configuration for better reliability
-      retry: (failureCount) => {
-        // Don't retry on slow connections after first failure
-        if (isSlowConnection && failureCount >= 1) return false;
-        // Normal retry logic for fast connections
-        return failureCount < 3;
-      },
+      retry: 3,
       retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
     });
   };
