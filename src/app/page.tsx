@@ -4,12 +4,12 @@ import { useSession, signIn } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { useYahooFantasy } from "@/hooks/use-yahoo-fantasy";
 import { AppHeader } from "@/components/app-header";
+import { PageHeader } from "@/components/page-header";
 import { getColumns } from "@/components/players-table/columns";
 import { DataTable } from "@/components/players-table/data-table";
 import { getStoredFilter, saveFilter } from "@/lib/filter-state";
 import type { PlayerFilterType } from "@/types/hooks";
 import { playerMatchesFilter } from "@/lib/utils";
-import { FILTER_LABELS } from "@/lib/constants";
 import React from "react";
 
 export default function Home() {
@@ -98,29 +98,7 @@ export default function Home() {
     isLoadingFullDataset
   ]);
 
-  // Memoized loading state message for better UX
-  const loadingMessage = React.useMemo(() => {
-    if (isLoadingFullDataset) {
-      return "Loading player dataset...";
-    }
-    return null;
-  }, [isLoadingFullDataset]);
 
-  // Memoized filter result message
-  const filterResultMessage = React.useMemo(() => {
-    // Always show filter result message if we have data
-    if (filteredPlayers.length > 0 || totalFilteredCount > 0) {
-      const displayName = FILTER_LABELS[activeFilter] || activeFilter;
-      const count = totalFilteredCount > 0 ? totalFilteredCount : filteredPlayers.length;
-      
-      if (searchTerm.trim()) {
-        return `Showing ${count} players matching "${searchTerm}" in ${displayName} filter`;
-      } else {
-        return `Showing ${count} players matching ${displayName} filter`;
-      }
-    }
-    return null;
-  }, [filteredPlayers.length, totalFilteredCount, activeFilter, searchTerm]);
 
   // Memoized columns to prevent recreation on each render
   const columns = React.useMemo(() => {
@@ -184,15 +162,14 @@ export default function Home() {
     <>
       <AppHeader userProfile={userProfile} />
       <main className="p-8">
-        <div className="mb-6">
-          <h2 className="text-xl font-semibold">MLB Players - {currentSeason} Season</h2>
-          {loadingMessage && (
-            <p className="text-sm text-gray-600 mt-1">{loadingMessage}</p>
-          )}
-          {filterResultMessage && (
-            <p className="text-sm text-gray-600 mt-1">{filterResultMessage}</p>
-          )}
-        </div>
+        <PageHeader 
+          title={`MLB Players - ${currentSeason} Season`}
+          isLoading={isLoadingFullDataset}
+          filteredPlayersLength={filteredPlayers.length}
+          totalFilteredCount={totalFilteredCount}
+          activeFilter={activeFilter}
+          searchTerm={searchTerm}
+        />
         <DataTable 
           columns={columns} 
           data={filteredPlayers} 
