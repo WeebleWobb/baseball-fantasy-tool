@@ -52,7 +52,8 @@ describe('Home Page', () => {
     
     mockUseYahooFantasy.mockReturnValue({
       useUserInfo: jest.fn().mockReturnValue({ data: undefined, isLoading: true }),
-      usePlayers: jest.fn().mockReturnValue({ data: undefined, isLoading: true })
+      usePlayers: jest.fn().mockReturnValue({ data: undefined, isLoading: true }),
+      usePlayersComprehensive: jest.fn().mockReturnValue({ data: undefined, isLoading: true })
     })
     
     renderWithProviders()
@@ -72,7 +73,8 @@ describe('Home Page', () => {
 
     mockUseYahooFantasy.mockReturnValue({
       useUserInfo: jest.fn().mockReturnValue({ data: mockUserInfo, isLoading: false }),
-      usePlayers: jest.fn().mockReturnValue({ data: mockPlayersWithRank, isLoading: false })
+      usePlayers: jest.fn().mockReturnValue({ data: mockPlayersWithRank, isLoading: false }),
+      usePlayersComprehensive: jest.fn().mockReturnValue({ data: undefined, isLoading: false })
     })
 
     renderWithProviders()
@@ -96,7 +98,8 @@ describe('Home Page', () => {
 
     mockUseYahooFantasy.mockReturnValue({
       useUserInfo: jest.fn().mockReturnValue({ data: mockUserInfo, isLoading: false }),
-      usePlayers: jest.fn().mockReturnValue({ data: [], isLoading: false })
+      usePlayers: jest.fn().mockReturnValue({ data: [], isLoading: false }),
+      usePlayersComprehensive: jest.fn().mockReturnValue({ data: undefined, isLoading: false })
     })
 
     renderWithProviders()
@@ -133,7 +136,8 @@ describe('Home Page', () => {
         }, 
         isLoading: false 
       }),
-      usePlayers: jest.fn().mockReturnValue({ data: [], isLoading: false })
+      usePlayers: jest.fn().mockReturnValue({ data: [], isLoading: false }),
+      usePlayersComprehensive: jest.fn().mockReturnValue({ data: undefined, isLoading: false })
     })
 
     renderWithProviders()
@@ -151,7 +155,8 @@ describe('Home Page', () => {
     
     mockUseYahooFantasy.mockReturnValue({
       useUserInfo: jest.fn().mockReturnValue({ data: undefined, isLoading: false }),
-      usePlayers: jest.fn().mockReturnValue({ data: undefined, isLoading: false })
+      usePlayers: jest.fn().mockReturnValue({ data: undefined, isLoading: false }),
+      usePlayersComprehensive: jest.fn().mockReturnValue({ data: undefined, isLoading: false })
     })
     
     renderWithProviders()
@@ -175,7 +180,8 @@ describe('Home Page', () => {
 
     mockUseYahooFantasy.mockReturnValue({
       useUserInfo: jest.fn().mockReturnValue({ data: mockUserInfo, isLoading: false }),
-      usePlayers: jest.fn().mockReturnValue({ data: mockPlayersWithRank, isLoading: false })
+      usePlayers: jest.fn().mockReturnValue({ data: mockPlayersWithRank, isLoading: false }),
+      usePlayersComprehensive: jest.fn().mockReturnValue({ data: undefined, isLoading: false })
     })
 
     renderWithProviders()
@@ -186,4 +192,28 @@ describe('Home Page', () => {
     expect(mockSignOut).toHaveBeenCalledWith({ redirect: true, callbackUrl: "/" })
   })
 
+  it('should display filter buttons for user interaction', () => {
+    mockUseSession.mockReturnValue({
+      data: {
+        accessToken: 'test-access-token',
+        user: { name: 'Test User' },
+        expires: '2024-12-31',
+      },
+      status: 'authenticated',
+      update: jest.fn()
+    })
+
+    mockUseYahooFantasy.mockReturnValue({
+      useUserInfo: jest.fn().mockReturnValue({ data: mockUserInfo, isLoading: false }),
+      usePlayers: jest.fn().mockReturnValue({ data: mockPlayersWithRank, isLoading: false }),
+      usePlayersComprehensive: jest.fn().mockReturnValue({ data: undefined, isLoading: false })
+    })
+
+    renderWithProviders()
+    
+    // Should show filter buttons for user interaction
+    expect(screen.getByRole('radio', { name: 'Filter by All Batters' })).toBeInTheDocument()
+    expect(screen.getByRole('radio', { name: 'Filter by All Pitchers' })).toBeInTheDocument()
+    expect(screen.getByRole('radio', { name: 'Filter by C' })).toBeInTheDocument()
+  })
 }) 

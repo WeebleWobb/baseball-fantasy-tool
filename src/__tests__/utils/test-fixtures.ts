@@ -1,4 +1,4 @@
-import { BATTING_STAT_IDS } from '@/lib/constants'
+import { BATTING_STAT_IDS, PITCHING_STAT_IDS } from '@/lib/constants'
 import type { 
   YahooUserResponse, 
   YahooPlayerStats, 
@@ -50,6 +50,27 @@ export const mockPlayerStats = {
   ]
 }
 
+// Mock Pitcher Stats Data
+export const mockPitcherStats = {
+  jacobdegrom: [
+    { stat_id: PITCHING_STAT_IDS.INNINGS_PITCHED, value: 180.2 },
+    { stat_id: PITCHING_STAT_IDS.ERA, value: 2.54 },
+    { stat_id: PITCHING_STAT_IDS.WHIP, value: 1.08 },
+    { stat_id: PITCHING_STAT_IDS.WINS, value: 15 },
+    { stat_id: PITCHING_STAT_IDS.STRIKEOUTS, value: 220 },
+    { stat_id: PITCHING_STAT_IDS.SAVES, value: 0 }
+  ],
+  edwindiaz: [
+    { stat_id: PITCHING_STAT_IDS.INNINGS_PITCHED, value: 62.0 },
+    { stat_id: PITCHING_STAT_IDS.ERA, value: 1.31 },
+    { stat_id: PITCHING_STAT_IDS.WHIP, value: 0.84 },
+    { stat_id: PITCHING_STAT_IDS.WINS, value: 3 },
+    { stat_id: PITCHING_STAT_IDS.STRIKEOUTS, value: 118 },
+    { stat_id: PITCHING_STAT_IDS.SAVES, value: 39 },
+    { stat_id: PITCHING_STAT_IDS.BLOWN_SAVES, value: 2 }
+  ]
+}
+
 // Mock Players
 export const mockPlayers: YahooPlayerStats[] = [
   {
@@ -83,6 +104,34 @@ export const mockPlayers: YahooPlayerStats[] = [
 
 // Mock Players with Rank (for DataTable tests)
 export const mockPlayersWithRank: PlayerWithRank[] = mockPlayers.map((player, index) => ({
+  ...player,
+  globalRank: index + 1
+}))
+
+// Mock Pitcher Players
+export const mockPitchers: YahooPlayerStats[] = [
+  {
+    player_key: '431.p.7163',
+    name: { full: 'Jacob deGrom', first: 'Jacob', last: 'deGrom' },
+    editorial_team_abbr: 'TEX',
+    display_position: 'SP',
+    player_stats: {
+      stats: mockPitcherStats.jacobdegrom
+    }
+  },
+  {
+    player_key: '431.p.8204',
+    name: { full: 'Edwin Diaz', first: 'Edwin', last: 'Diaz' },
+    editorial_team_abbr: 'NYM',
+    display_position: 'RP',
+    player_stats: {
+      stats: mockPitcherStats.edwindiaz
+    }
+  }
+]
+
+// Mock Pitchers with Rank (for DataTable tests)
+export const mockPitchersWithRank: PlayerWithRank[] = mockPitchers.map((player, index) => ({
   ...player,
   globalRank: index + 1
 }))
