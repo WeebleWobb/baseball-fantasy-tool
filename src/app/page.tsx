@@ -124,6 +124,11 @@ export default function Home() {
     return null;
   }, [needsComprehensiveData, totalFilteredCount, activeFilter]);
 
+  // Memoized columns to prevent recreation on each render
+  const columns = React.useMemo(() => {
+    return getColumns(activeFilter);
+  }, [activeFilter]);
+
   // Handle filter changes
   const handleFilterChange = React.useCallback((newFilter: PlayerFilterType) => {
     setActiveFilter(newFilter);
@@ -205,7 +210,7 @@ export default function Home() {
           )}
         </div>
         <DataTable 
-          columns={getColumns(activeFilter)} 
+          columns={columns} 
           data={filteredPlayers} 
           isLoading={isLoading}
           pageIndex={pageIndex}

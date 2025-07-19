@@ -1,5 +1,6 @@
 "use client"
 
+import React from "react"
 import { Button } from "@/components/ui/button"
 import { FILTER_BUTTONS } from "@/lib/constants"
 import type { PlayerFilterType } from "@/types/hooks"
@@ -11,7 +12,7 @@ interface FilterButtonsProps {
   disabled?: boolean
 }
 
-export function FilterButtons({ 
+export const FilterButtons = React.memo<FilterButtonsProps>(function FilterButtons({ 
   activeFilter, 
   onFilterChange, 
   disabled = false 
@@ -44,4 +45,4 @@ export function FilterButtons({
       ))}
     </div>
   )
-} 
+}) 
