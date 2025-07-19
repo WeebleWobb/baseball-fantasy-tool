@@ -6,7 +6,6 @@ import {
   flexRender,
   getCoreRowModel,
   getSortedRowModel,
-  getFilteredRowModel,
   useReactTable,
   SortingState,
 } from "@tanstack/react-table"
@@ -36,6 +35,8 @@ interface DataTableProps<TData, TValue> {
   activeFilter?: PlayerFilterType
   onFilterChange?: (filter: PlayerFilterType) => void
   disabled?: boolean
+  searchTerm?: string
+  onSearchChange?: (searchTerm: string) => void
 }
 
 export function DataTable<TData, TValue>({
@@ -49,21 +50,19 @@ export function DataTable<TData, TValue>({
   activeFilter = 'ALL_BATTERS',
   onFilterChange,
   disabled = false,
+  searchTerm = "",
+  onSearchChange,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([])
-  const [globalFilter, setGlobalFilter] = React.useState("")
 
   const table = useReactTable({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
     onSortingChange: setSorting,
-    onGlobalFilterChange: setGlobalFilter,
     state: {
       sorting,
-      globalFilter,
     },
     meta: {
       pageIndex,
@@ -99,8 +98,8 @@ export function DataTable<TData, TValue>({
       <div className="flex items-center py-4">
         <Input
           placeholder="Search Player"
-          value={globalFilter ?? ""}
-          onChange={(event) => setGlobalFilter(event.target.value)}
+          value={searchTerm ?? ""}
+          onChange={(event) => onSearchChange?.(event.target.value)}
           className="max-w-sm"
         />
       </div>

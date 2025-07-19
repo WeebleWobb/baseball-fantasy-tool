@@ -20,6 +20,9 @@ export default function Home() {
   // Add state for pagination
   const [pageIndex, setPageIndex] = React.useState(0);
   
+  // Add search state management
+  const [searchTerm, setSearchTerm] = React.useState("");
+  
   // Add filter state management with localStorage initialization
   const [activeFilter, setActiveFilter] = React.useState<PlayerFilterType>(() => {
     // Initialize from localStorage on component mount
@@ -51,33 +54,48 @@ export default function Home() {
     }
 
     // Apply position-based filtering to the entire dataset
-    const filtered = fullDataset.filter((player) => 
+    const positionFiltered = fullDataset.filter((player) => 
       playerMatchesFilter(player.display_position, activeFilter)
     );
 
-    // Calculate pagination
+    // Apply search filtering across the entire dataset
+    const searchFiltered = positionFiltered.filter((player) => {
+      if (!searchTerm.trim()) return true; // No search term, show all
+      
+      const searchLower = searchTerm.toLowerCase();
+      return (
+        player.name?.full?.toLowerCase().includes(searchLower) ||
+        player.name?.first?.toLowerCase().includes(searchLower) ||
+        player.name?.last?.toLowerCase().includes(searchLower) ||
+        player.editorial_team_abbr?.toLowerCase().includes(searchLower) ||
+        player.display_position?.toLowerCase().includes(searchLower)
+      );
+    });
+
+    // Calculate pagination based on search-filtered results
     const itemsPerPage = 25;
-    const totalPagesCount = Math.ceil(filtered.length / itemsPerPage);
+    const totalPagesCount = Math.ceil(searchFiltered.length / itemsPerPage);
     
     // Get current page data
     const startIndex = pageIndex * itemsPerPage;
-    const paginatedData = filtered.slice(startIndex, startIndex + itemsPerPage);
+    const paginatedData = searchFiltered.slice(startIndex, startIndex + itemsPerPage);
 
-    // Add global rank based on filtered dataset position
+    // Add global rank based on search-filtered dataset position
     const playersWithRank = paginatedData.map((player, index) => ({
       ...player,
-      globalRank: startIndex + index + 1 // True global rank in filtered dataset
+      globalRank: startIndex + index + 1 // True global rank in search-filtered dataset
     }));
 
     return {
       filteredPlayers: playersWithRank,
-      totalFilteredCount: filtered.length,
+      totalFilteredCount: searchFiltered.length,
       totalPages: totalPagesCount,
       isLoading: isLoadingFullDataset
     };
   }, [
     fullDataset, 
     activeFilter, 
+    searchTerm, // Add searchTerm to dependencies
     pageIndex, 
     isLoadingFullDataset
   ]);
@@ -96,10 +114,15 @@ export default function Home() {
     if (filteredPlayers.length > 0 || totalFilteredCount > 0) {
       const displayName = FILTER_LABELS[activeFilter] || activeFilter;
       const count = totalFilteredCount > 0 ? totalFilteredCount : filteredPlayers.length;
-      return `Showing ${count} players matching ${displayName} filter`;
+      
+      if (searchTerm.trim()) {
+        return `Showing ${count} players matching "${searchTerm}" in ${displayName} filter`;
+      } else {
+        return `Showing ${count} players matching ${displayName} filter`;
+      }
     }
     return null;
-  }, [filteredPlayers.length, totalFilteredCount, activeFilter]);
+  }, [filteredPlayers.length, totalFilteredCount, activeFilter, searchTerm]);
 
   // Memoized columns to prevent recreation on each render
   const columns = React.useMemo(() => {
@@ -109,10 +132,18 @@ export default function Home() {
   // Handle filter changes
   const handleFilterChange = React.useCallback((newFilter: PlayerFilterType) => {
     setActiveFilter(newFilter);
-    // Reset pagination when filter changes to avoid empty pages
+    // Reset pagination and search when filter changes to avoid empty pages
     setPageIndex(0);
+    setSearchTerm("");
     // Persist filter change to localStorage
     saveFilter(newFilter);
+  }, []);
+
+  // Handle search changes
+  const handleSearchChange = React.useCallback((newSearchTerm: string) => {
+    setSearchTerm(newSearchTerm);
+    // Reset pagination when search changes
+    setPageIndex(0);
   }, []);
 
   const handleSignIn = () => {
@@ -196,6 +227,8 @@ export default function Home() {
           activeFilter={activeFilter}
           onFilterChange={handleFilterChange}
           disabled={isLoading}
+          searchTerm={searchTerm}
+          onSearchChange={handleSearchChange}
         />
       </main>
     </>
