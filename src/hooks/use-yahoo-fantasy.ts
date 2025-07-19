@@ -19,6 +19,11 @@ const CACHE_DURATIONS = {
  */
 function useNetworkPerformance(): boolean {
   return useMemo(() => {
+    // Only check connection on client side
+    if (typeof window === 'undefined') {
+      return false; // Default to fast connection during SSR
+    }
+    
     // Check if we're on a slow connection
     if ('connection' in navigator) {
       const connection = (navigator as Record<string, unknown>).connection;
