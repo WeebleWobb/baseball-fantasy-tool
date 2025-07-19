@@ -66,9 +66,7 @@ export default function Home() {
       return (
         player.name?.full?.toLowerCase().includes(searchLower) ||
         player.name?.first?.toLowerCase().includes(searchLower) ||
-        player.name?.last?.toLowerCase().includes(searchLower) ||
-        player.editorial_team_abbr?.toLowerCase().includes(searchLower) ||
-        player.display_position?.toLowerCase().includes(searchLower)
+        player.name?.last?.toLowerCase().includes(searchLower)
       );
     });
 
