@@ -84,26 +84,23 @@ export function DataTable<TData, TValue>({
   }
 
   return (
-    <div className="space-y-4">
-      {/* Filter Buttons */}
-      {onFilterChange && (
-        <FilterButtons
-          activeFilter={activeFilter}
-          onFilterChange={onFilterChange}
-          disabled={disabled}
-        />
-      )}
-      
+    <>
       {/* Search Input */}
-      <div className="flex items-center py-4">
+      <div className="flex items-center justify-between mb-4 flex-wrap">
         <Input
           placeholder="Search Player"
           value={searchTerm ?? ""}
           onChange={(event) => onSearchChange?.(event.target.value)}
-          className="max-w-sm"
+          className="max-w-xs"
         />
+        {onFilterChange && (
+          <FilterButtons
+            activeFilter={activeFilter}
+            onFilterChange={onFilterChange}
+            disabled={disabled}
+          />
+        )}
       </div>
-      
       {/* Table */}
       <div className="rounded-md border">
         <Table>
@@ -180,6 +177,6 @@ export function DataTable<TData, TValue>({
           </Button>
         </div>
       </div>
-    </div>
+    </>
   )
 } 
