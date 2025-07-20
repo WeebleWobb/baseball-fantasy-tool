@@ -108,8 +108,9 @@ export function DataTable<TData, TValue>({
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
+                  const isRankColumn = header.column.id === 'rank'
                   return (
-                    <TableHead key={header.id}>
+                    <TableHead key={header.id} className={isRankColumn ? 'w-18' : undefined}>
                       {header.isPlaceholder
                         ? null
                         : flexRender(
@@ -129,14 +130,17 @@ export function DataTable<TData, TValue>({
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
                 >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
-                    </TableCell>
-                  ))}
+                  {row.getVisibleCells().map((cell) => {
+                    const isRankColumn = cell.column.id === 'rank'
+                    return (
+                      <TableCell key={cell.id} className={isRankColumn ? 'w-16' : undefined}>
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
+                      </TableCell>
+                    )
+                  })}
                 </TableRow>
               ))
             ) : (
