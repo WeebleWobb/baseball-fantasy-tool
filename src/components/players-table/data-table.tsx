@@ -8,6 +8,7 @@ import {
   getSortedRowModel,
   useReactTable,
   SortingState,
+  Cell,
 } from "@tanstack/react-table"
 
 import {
@@ -23,6 +24,7 @@ import { Input } from "@/components/ui/input"
 import { DataTableMeta } from "@/types/table-pagination"
 import { FilterButtons } from "@/components/players-table/filter-buttons"
 import type { PlayerFilterType } from "@/types/hooks"
+import { cn } from "@/lib/utils"
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
@@ -93,6 +95,7 @@ export function DataTable<TData, TValue>({
           onChange={(event) => onSearchChange?.(event.target.value)}
           className="max-w-xs"
         />
+        {/* Filter Buttons */}
         {onFilterChange && (
           <FilterButtons
             activeFilter={activeFilter}
@@ -108,9 +111,8 @@ export function DataTable<TData, TValue>({
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
-                  const isRankColumn = header.column.id === 'rank'
                   return (
-                    <TableHead key={header.id} className={isRankColumn ? 'w-18' : undefined}>
+                    <TableHead key={header.id}>
                       {header.isPlaceholder
                         ? null
                         : flexRender(
@@ -130,10 +132,18 @@ export function DataTable<TData, TValue>({
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
                 >
-                  {row.getVisibleCells().map((cell) => {
+                  {row.getVisibleCells().map((cell: Cell<TData, TValue>) => {
                     const isRankColumn = cell.column.id === 'rank'
+                    const isNameColumn = cell.column.id === 'name_full'
+                    
                     return (
-                      <TableCell key={cell.id} className={isRankColumn ? 'w-16' : undefined}>
+                      <TableCell 
+                        key={cell.id} 
+                        className={cn(
+                          isRankColumn && 'bg-red w-24 pl-4',
+                          isNameColumn && 'pl-4'
+                        )}
+                      >
                         {flexRender(
                           cell.column.columnDef.cell,
                           cell.getContext()
