@@ -4,13 +4,7 @@ import { getColumns } from "@/components/players-table/columns";
 import { getStoredFilter, saveFilter } from "@/lib/filter-state";
 import type { PlayerFilterType } from "@/types/hooks";
 import { playerMatchesFilter } from "@/lib/utils";
-
-interface ProcessedPlayersData {
-  filteredPlayers: unknown[];
-  totalFilteredCount: number;
-  totalPages: number;
-  isLoading: boolean;
-}
+import type { ProcessedPlayersData } from "@/types/player-data";
 
 function processPlayersData(
   fullDataset: unknown[] | null | undefined,

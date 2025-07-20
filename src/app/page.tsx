@@ -8,6 +8,7 @@ import { AppHeader } from "@/components/app-header";
 import { PageHeader } from "@/components/page-header";
 import { DataTable } from "@/components/players-table/data-table";
 import type { PlayerWithRank } from "@/types/yahoo-fantasy";
+import type { UserProfile } from "@/types/user-profile";
 
 export default function Home() {
   const { useUserInfo } = useYahooFantasy();
@@ -15,7 +16,7 @@ export default function Home() {
 
   const playersData = usePlayersManager();
   const currentSeason = new Date().getFullYear().toString();
-  const userProfile = {
+  const userProfile: UserProfile = {
     displayName: userInfo?.fantasy_content?.users?.[0]?.user?.[1]?.profile?.display_name,
     profileUrl: userInfo?.fantasy_content?.users?.[0]?.user?.[1]?.profile?.fantasy_profile_url,
     imageUrl: userInfo?.fantasy_content?.users?.[0]?.user?.[1]?.profile?.image_url,

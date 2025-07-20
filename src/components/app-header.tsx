@@ -3,12 +3,7 @@
 import { signOut } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-
-interface UserProfile {
-  displayName?: string;
-  profileUrl?: string;
-  imageUrl?: string;
-}
+import type { UserProfile } from "@/types/user-profile";
 
 interface AppHeaderProps {
   userProfile: UserProfile;
