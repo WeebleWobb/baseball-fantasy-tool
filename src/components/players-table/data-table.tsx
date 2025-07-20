@@ -88,12 +88,12 @@ export function DataTable<TData, TValue>({
   return (
     <>
       {/* Search Input */}
-      <div className="flex items-center justify-between mb-4 flex-wrap">
+      <div className="flex flex-col mb-4 lg:flex-row lg:items-center lg:justify-between">
         <Input
           placeholder="Search Player"
           value={searchTerm ?? ""}
           onChange={(event) => onSearchChange?.(event.target.value)}
-          className="max-w-xs"
+          className="max-w-xs mb-4 lg:mb-0"
         />
         {/* Filter Buttons */}
         {onFilterChange && (
