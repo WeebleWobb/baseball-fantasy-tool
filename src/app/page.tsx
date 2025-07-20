@@ -1,8 +1,7 @@
 'use client';
 
-import { useSession, signIn } from "next-auth/react";
-import { Button } from "@/components/ui/button";
 import { useYahooFantasy } from "@/hooks/use-yahoo-fantasy";
+import { AuthGuard } from "@/components/auth-guard";
 import { AppHeader } from "@/components/app-header";
 import { PageHeader } from "@/components/page-header";
 import { getColumns } from "@/components/players-table/columns";
@@ -13,9 +12,8 @@ import { playerMatchesFilter } from "@/lib/utils";
 import React from "react";
 
 export default function Home() {
-  const { data: session, status } = useSession();
   const { useUserInfo, usePlayersComprehensive } = useYahooFantasy();
-  const { data: userInfo, isLoading: isLoadingUserInfo } = useUserInfo();
+  const { data: userInfo } = useUserInfo();
   
   // Add state for pagination
   const [pageIndex, setPageIndex] = React.useState(0);
@@ -122,35 +120,6 @@ export default function Home() {
     setPageIndex(0);
   }, []);
 
-  const handleSignIn = () => {
-    signIn('yahoo', { callbackUrl: '/' })
-  }
-
-  if (status === "loading" || isLoadingUserInfo) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="animate-pulse">Loading...</div>
-      </div>
-    );
-  }
-
-  if (!session) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">Yahoo Fantasy Baseball Tool</h1>
-          <p className="mb-4">Please sign in with your Yahoo account to get started.</p>
-          <Button 
-              className="cursor-pointer w-full bg-[#7d2eff] py-3"
-              onClick={handleSignIn}
-            >
-              Sign in with Yahoo
-            </Button>
-        </div>
-      </div>
-    );
-  }
-
   // Extract user profile data for AppHeader
   const userProfile = {
     displayName: userInfo?.fantasy_content?.users?.[0]?.user?.[1]?.profile?.display_name,
@@ -159,7 +128,7 @@ export default function Home() {
   };
 
   return (
-    <>
+    <AuthGuard>
       <AppHeader userProfile={userProfile} />
       <main className="p-8">
         <PageHeader 
@@ -184,6 +153,6 @@ export default function Home() {
           onSearchChange={handleSearchChange}
         />
       </main>
-    </>
+    </AuthGuard>
   );
 }
