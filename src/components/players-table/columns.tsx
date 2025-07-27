@@ -28,15 +28,13 @@ const commonColumns: ColumnDef<PlayerWithRank>[] = [
   },
   {
     accessorKey: "editorial_team_abbr",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Team" />
-    ),
+    header: "Team",
+    enableSorting: false,
   },
   {
     accessorKey: "display_position",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Position" />
-    ),
+    header: "Position",
+    enableSorting: false,
   },
 ];
 

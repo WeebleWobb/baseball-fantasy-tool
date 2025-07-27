@@ -19,7 +19,7 @@ export const FilterButtons = React.memo<FilterButtonsProps>(function FilterButto
 }: FilterButtonsProps) {
   return (
     <div 
-      className="flex flex-wrap gap-2 mb-4"
+      className="flex flex-wrap gap-2"
       role="radiogroup"
       aria-label="Player position filter"
     >

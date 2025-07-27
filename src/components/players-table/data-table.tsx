@@ -8,6 +8,7 @@ import {
   getSortedRowModel,
   useReactTable,
   SortingState,
+  Cell,
 } from "@tanstack/react-table"
 
 import {
@@ -23,6 +24,7 @@ import { Input } from "@/components/ui/input"
 import { DataTableMeta } from "@/types/table-pagination"
 import { FilterButtons } from "@/components/players-table/filter-buttons"
 import type { PlayerFilterType } from "@/types/hooks"
+import { cn } from "@/lib/utils"
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
@@ -84,30 +86,26 @@ export function DataTable<TData, TValue>({
   }
 
   return (
-    <div className="space-y-4">
-      {/* Filter Buttons */}
-      {onFilterChange && (
-        <FilterButtons
-          activeFilter={activeFilter}
-          onFilterChange={onFilterChange}
-          disabled={disabled}
-        />
-      )}
-      
+    <>
       {/* Search Input */}
-      <div className="flex items-center py-4">
+      <div className="flex flex-col mb-4 lg:flex-row lg:items-center lg:justify-between">
         <Input
           placeholder="Search Player"
           value={searchTerm ?? ""}
           onChange={(event) => onSearchChange?.(event.target.value)}
-          className="max-w-sm"
+          className="max-w-xs mb-4 lg:mb-0"
         />
+        {/* Filter Buttons */}
+        {onFilterChange && (
+          <FilterButtons
+            activeFilter={activeFilter}
+            onFilterChange={onFilterChange}
+            disabled={disabled}
+          />
+        )}
       </div>
-      
-      {/* Table */}
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
+      <Table>
+        <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
@@ -132,14 +130,25 @@ export function DataTable<TData, TValue>({
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
                 >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
-                    </TableCell>
-                  ))}
+                  {row.getVisibleCells().map((cell: Cell<TData, TValue>) => {
+                    const isRankColumn = cell.column.id === 'rank'
+                    const isNameColumn = cell.column.id === 'name_full'
+                    
+                    return (
+                      <TableCell 
+                        key={cell.id} 
+                        className={cn(
+                          isRankColumn && 'bg-red w-24 pl-4',
+                          isNameColumn && 'pl-4'
+                        )}
+                      >
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
+                      </TableCell>
+                    )
+                  })}
                 </TableRow>
               ))
             ) : (
@@ -154,7 +163,6 @@ export function DataTable<TData, TValue>({
             )}
           </TableBody>
         </Table>
-      </div>
       
       {/* Pagination */}
       <div className="flex items-center justify-between space-x-2 py-4">
@@ -180,6 +188,6 @@ export function DataTable<TData, TValue>({
           </Button>
         </div>
       </div>
-    </div>
+    </>
   )
 } 
