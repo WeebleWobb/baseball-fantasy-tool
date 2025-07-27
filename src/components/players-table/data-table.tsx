@@ -104,10 +104,8 @@ export function DataTable<TData, TValue>({
           />
         )}
       </div>
-      {/* Table */}
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
+      <Table>
+        <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
@@ -165,7 +163,6 @@ export function DataTable<TData, TValue>({
             )}
           </TableBody>
         </Table>
-      </div>
       
       {/* Pagination */}
       <div className="flex items-center justify-between space-x-2 py-4">
