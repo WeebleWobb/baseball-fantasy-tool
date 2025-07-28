@@ -111,8 +111,7 @@ describe('DataTable Integration', () => {
       onLoadMore: jest.fn()
     })
 
-    expect(screen.getByText('Showing 3 of 3 players')).toBeInTheDocument()
-    expect(screen.queryByText('Scroll down to load more')).not.toBeInTheDocument()
+    expect(screen.getByText('Showing 3 of 3 players - All players loaded')).toBeInTheDocument()
   })
 
 }) 

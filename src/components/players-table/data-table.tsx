@@ -22,6 +22,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { useInfiniteScroll } from "@/hooks/use-infinite-scroll"
 import { FilterButtons } from "@/components/players-table/filter-buttons"
+import LoadingIndicator from "@/components/players-table/loading-indicator"
 import type { PlayerFilterType } from "@/types/hooks"
 import { cn } from "@/lib/utils"
 
@@ -57,6 +58,7 @@ export function DataTable<TData, TValue>({
   const { isNearBottom } = useInfiniteScroll({
     hasMore,
     onLoadMore: onLoadMore || (() => {}),
+    dataLength: data.length,
   })
 
   const table = useReactTable({
@@ -162,18 +164,13 @@ export function DataTable<TData, TValue>({
           </TableBody>
         </Table>
       
-      {/* Infinite Scroll Status */}
-      <div className="flex items-center justify-between space-x-2 py-4">
-        <div className="text-sm text-muted-foreground">
-          Showing {data.length} of {totalMatchingPlayers} players
-          {hasMore && " - Scroll down to load more"}
-        </div>
-        {hasMore && isNearBottom && (
-          <div className="text-sm text-muted-foreground">
-            Loading more players...
-          </div>
-        )}
-      </div>
+      {/* Infinite Scroll Status and Loading */}
+      <LoadingIndicator 
+        hasMore={hasMore} 
+        isNearBottom={isNearBottom}
+        currentCount={data.length}
+        totalCount={totalMatchingPlayers}
+      />
     </>
   )
 } 
