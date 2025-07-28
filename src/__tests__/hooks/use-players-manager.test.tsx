@@ -67,9 +67,10 @@ describe('usePlayersManager', () => {
   it('should initialize with default states', () => {
     const { result } = setup()
     
-    expect(result.current.pageIndex).toBe(0)
     expect(result.current.searchTerm).toBe('')
     expect(result.current.activeFilter).toBe('ALL_BATTERS')
+    expect(result.current.hasMore).toBe(false) // Single player, rendered count is 25
+    expect(result.current.totalMatchingPlayers).toBe(1)
   })
 
   it('should handle empty dataset', () => {
@@ -88,7 +89,8 @@ describe('usePlayersManager', () => {
 
     expect(result.current.filteredPlayers).toEqual([])
     expect(result.current.totalFilteredCount).toBe(0)
-    expect(result.current.totalPages).toBe(1)
+    expect(result.current.totalMatchingPlayers).toBe(0)
+    expect(result.current.hasMore).toBe(false)
   })
 
   it('should handle loading state', () => {
@@ -117,7 +119,6 @@ describe('usePlayersManager', () => {
 
     await waitFor(() => {
       expect(result.current.activeFilter).toBe('ALL_PITCHERS')
-      expect(result.current.pageIndex).toBe(0) // Should reset pagination
       expect(result.current.searchTerm).toBe('') // Should reset search
       expect(mockSaveFilter).toHaveBeenCalledWith('ALL_PITCHERS')
     })
@@ -132,19 +133,42 @@ describe('usePlayersManager', () => {
 
     await waitFor(() => {
       expect(result.current.searchTerm).toBe('test')
-      expect(result.current.pageIndex).toBe(0) // Should reset pagination
     })
   })
 
-  it('should handle page changes', async () => {
+  it('should handle load more functionality', async () => {
+    // Setup with many players to test infinite scroll
+    const manyPlayers = Array.from({ length: 50 }, (_, i) => ({
+      name: { full: `Player ${i + 1}` },
+      display_position: 'OF',
+      player_key: `${i + 1}`
+    }))
+
+    const mockManyPlayers = jest.fn().mockReturnValue({
+      data: manyPlayers,
+      isLoading: false
+    })
+    
+    mockUseYahooFantasy.mockReturnValue({
+      usePlayersComprehensive: mockManyPlayers,
+      useUserInfo: jest.fn(),
+      usePlayers: jest.fn()
+    })
+
     const { result } = setup()
 
+    // Initially should show 25 players with hasMore true
+    expect(result.current.filteredPlayers).toHaveLength(25)
+    expect(result.current.hasMore).toBe(true)
+    expect(result.current.totalMatchingPlayers).toBe(50)
+
     await act(async () => {
-      result.current.onPageChange(1)
+      result.current.loadMorePlayers()
     })
 
     await waitFor(() => {
-      expect(result.current.pageIndex).toBe(1)
+      expect(result.current.filteredPlayers).toHaveLength(50)
+      expect(result.current.hasMore).toBe(false)
     })
   })
 
