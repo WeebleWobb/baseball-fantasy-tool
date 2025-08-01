@@ -1,5 +1,7 @@
+import type { PlayerWithRank } from "./yahoo-fantasy";
+
 export interface ProcessedPlayersData {
-  filteredPlayers: unknown[];
+  filteredPlayers: PlayerWithRank[];
   totalFilteredCount: number;
   totalMatchingPlayers: number;
   isLoading: boolean;

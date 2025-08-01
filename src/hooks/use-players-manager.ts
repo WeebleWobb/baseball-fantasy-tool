@@ -6,8 +6,10 @@ import type { PlayerFilterType } from "@/types/hooks";
 import { playerMatchesFilter } from "@/lib/utils";
 import type { ProcessedPlayersData } from "@/types/player-data";
 
+import type { PlayerWithRank, YahooPlayerStats } from "@/types/yahoo-fantasy";
+
 function processPlayersData(
-  fullDataset: unknown[] | null | undefined,
+  fullDataset: YahooPlayerStats[] | null | undefined,
   activeFilter: PlayerFilterType,
   searchTerm: string,
   renderedCount: number,
@@ -23,15 +25,15 @@ function processPlayersData(
   }
 
   // First, preserve original Yahoo ranking (sort=AR order) before any filtering
-  const dataWithOriginalRank = fullDataset.map((player, index) => ({
-    ...(player as Record<string, unknown>),
-    originalRank: index + 1 // Yahoo's sort=AR performance ranking order
+  const dataWithOriginalRank: PlayerWithRank[] = fullDataset.map((player, index) => ({
+    ...player,
+    originalRank: index + 1, // Yahoo's sort=AR performance ranking order
+    globalRank: index + 1 // Initialize globalRank, will be updated after filtering
   }));
 
   // Apply position-based filtering to the entire dataset
   const positionFiltered = dataWithOriginalRank.filter((player) => {
-    const playerRecord = player as Record<string, unknown>;
-    return playerMatchesFilter(playerRecord.display_position as string, activeFilter);
+    return playerMatchesFilter(player.display_position, activeFilter);
   });
 
   // Apply search filtering across the entire dataset
@@ -39,12 +41,10 @@ function processPlayersData(
     if (!searchTerm.trim()) return true; // No search term, show all
     
     const searchLower = searchTerm.toLowerCase();
-    const playerRecord = player as Record<string, unknown>;
-    const name = playerRecord.name as { full?: string; first?: string; last?: string };
     return (
-      name?.full?.toLowerCase().includes(searchLower) ||
-      name?.first?.toLowerCase().includes(searchLower) ||
-      name?.last?.toLowerCase().includes(searchLower)
+      player.name.full?.toLowerCase().includes(searchLower) ||
+      player.name.first?.toLowerCase().includes(searchLower) ||
+      player.name.last?.toLowerCase().includes(searchLower)
     );
   });
 
