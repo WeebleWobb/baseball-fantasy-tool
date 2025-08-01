@@ -22,8 +22,14 @@ function processPlayersData(
     };
   }
 
+  // First, preserve original Yahoo ranking (sort=AR order) before any filtering
+  const dataWithOriginalRank = fullDataset.map((player, index) => ({
+    ...(player as Record<string, unknown>),
+    originalRank: index + 1 // Yahoo's sort=AR performance ranking order
+  }));
+
   // Apply position-based filtering to the entire dataset
-  const positionFiltered = fullDataset.filter((player) => {
+  const positionFiltered = dataWithOriginalRank.filter((player) => {
     const playerRecord = player as Record<string, unknown>;
     return playerMatchesFilter(playerRecord.display_position as string, activeFilter);
   });
@@ -45,10 +51,10 @@ function processPlayersData(
   // Get progressive data for infinite scroll (slice from 0 to renderedCount)
   const displayedData = searchFiltered.slice(0, renderedCount);
 
-  // Add global rank based on search-filtered dataset position
+  // Add current global rank based on search-filtered dataset position while preserving originalRank
   const playersWithRank = displayedData.map((player, index) => ({
-    ...(player as Record<string, unknown>),
-    globalRank: index + 1 // True global rank in search-filtered dataset
+    ...player,
+    globalRank: index + 1 // Current position in filtered/searched results
   }));
 
   return {
