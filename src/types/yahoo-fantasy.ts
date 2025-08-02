@@ -46,8 +46,11 @@ export interface YahooPlayerStats {
   };
 }
 
-// Extended player type with global rank for table display
-export type PlayerWithRank = YahooPlayerStats & { globalRank: number }
+// Extended player type with preserved original ranking and current global rank for table display
+export type PlayerWithRank = YahooPlayerStats & { 
+  originalRank: number;  // Yahoo's original performance ranking (sort=AR order)
+  globalRank: number;    // Current position in filtered/searched results
+}
 
 export interface YahooPlayersResponse {
   fantasy_content: {

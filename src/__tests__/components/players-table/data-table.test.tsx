@@ -94,30 +94,24 @@ describe('DataTable Integration', () => {
     expect(mockOnSearchChange).toHaveBeenCalledTimes(2)
   })
 
-  it('should handle pagination controls correctly', () => {
-    const mockOnPageChange = jest.fn()
-    
+  it('should handle infinite scroll status display correctly', () => {
+    // Test with hasMore = true
     setup(mockPlayersWithRank, {
-      pageIndex: 1,
-      totalPages: 3,
-      onPageChange: mockOnPageChange
+      totalMatchingPlayers: 100,
+      hasMore: true,
+      onLoadMore: jest.fn()
     })
 
-    expect(screen.getByText('Page 2 of 3')).toBeInTheDocument()
+    expect(screen.getByText('Showing 3 of 100 players - Scroll down to load more')).toBeInTheDocument()
     
-    const prevButton = screen.getByRole('button', { name: /previous/i })
-    const nextButton = screen.getByRole('button', { name: /next/i })
-    
-    // Both buttons should be enabled
-    expect(prevButton).not.toBeDisabled()
-    expect(nextButton).not.toBeDisabled()
+    // Test with hasMore = false (all data loaded)
+    setup(mockPlayersWithRank, {
+      totalMatchingPlayers: 3,
+      hasMore: false,
+      onLoadMore: jest.fn()
+    })
 
-    // Test both onClick handlers
-    fireEvent.click(prevButton)
-    expect(mockOnPageChange).toHaveBeenCalledWith(0)
-
-    fireEvent.click(nextButton)
-    expect(mockOnPageChange).toHaveBeenCalledWith(2)
+    expect(screen.getByText('Showing 3 of 3 players - All players loaded')).toBeInTheDocument()
   })
 
 }) 

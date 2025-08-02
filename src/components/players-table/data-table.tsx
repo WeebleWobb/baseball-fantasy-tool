@@ -19,10 +19,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { DataTableMeta } from "@/types/table-pagination"
+import { useInfiniteScroll } from "@/hooks/use-infinite-scroll"
 import { FilterButtons } from "@/components/players-table/filter-buttons"
+import LoadingIndicator from "@/components/players-table/loading-indicator"
 import type { PlayerFilterType } from "@/types/hooks"
 import { cn } from "@/lib/utils"
 
@@ -30,10 +30,9 @@ interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
   data: TData[]
   isLoading?: boolean
-  pageIndex?: number
-  onPageChange?: (page: number) => void
-  totalPages?: number
-  pageSize?: number
+  totalMatchingPlayers?: number
+  hasMore?: boolean
+  onLoadMore?: () => void
   activeFilter?: PlayerFilterType
   onFilterChange?: (filter: PlayerFilterType) => void
   disabled?: boolean
@@ -45,10 +44,9 @@ export function DataTable<TData, TValue>({
   columns,
   data,
   isLoading,
-  pageIndex = 0,
-  onPageChange,
-  totalPages = 1,
-  pageSize = 25,
+  totalMatchingPlayers = 0,
+  hasMore = false,
+  onLoadMore,
   activeFilter = 'ALL_BATTERS',
   onFilterChange,
   disabled = false,
@@ -56,6 +54,12 @@ export function DataTable<TData, TValue>({
   onSearchChange,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([])
+
+  const { isNearBottom } = useInfiniteScroll({
+    hasMore,
+    onLoadMore: onLoadMore || (() => {}),
+    dataLength: data.length,
+  })
 
   const table = useReactTable({
     data,
@@ -66,10 +70,6 @@ export function DataTable<TData, TValue>({
     state: {
       sorting,
     },
-    meta: {
-      pageIndex,
-      pageSize,
-    } as DataTableMeta,
   })
 
   if (isLoading) {
@@ -164,30 +164,13 @@ export function DataTable<TData, TValue>({
           </TableBody>
         </Table>
       
-      {/* Pagination */}
-      <div className="flex items-center justify-between space-x-2 py-4">
-        <div className="text-sm text-muted-foreground">
-          Page {pageIndex + 1} of {totalPages}
-        </div>
-        <div className="flex items-center space-x-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => onPageChange?.(pageIndex - 1)}
-            disabled={pageIndex <= 0}
-          >
-            Previous
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => onPageChange?.(pageIndex + 1)}
-            disabled={pageIndex >= totalPages - 1}
-          >
-            Next
-          </Button>
-        </div>
-      </div>
+      {/* Infinite Scroll Status and Loading */}
+      <LoadingIndicator 
+        hasMore={hasMore} 
+        isNearBottom={isNearBottom}
+        currentCount={data.length}
+        totalCount={totalMatchingPlayers}
+      />
     </>
   )
 } 

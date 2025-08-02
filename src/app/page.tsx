@@ -38,9 +38,9 @@ export default function Home() {
           columns={playersData.columns} 
           data={playersData.filteredPlayers as PlayerWithRank[]} 
           isLoading={playersData.isLoading}
-          pageIndex={playersData.pageIndex}
-          onPageChange={playersData.onPageChange}
-          totalPages={playersData.totalPages}
+          totalMatchingPlayers={playersData.totalMatchingPlayers}
+          hasMore={playersData.hasMore}
+          onLoadMore={playersData.loadMorePlayers}
           activeFilter={playersData.activeFilter}
           onFilterChange={playersData.onFilterChange}
           disabled={playersData.isLoading}

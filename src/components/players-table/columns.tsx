@@ -14,9 +14,9 @@ const commonColumns: ColumnDef<PlayerWithRank>[] = [
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Rank" />
     ),
-    accessorKey: "globalRank",
+    accessorKey: "originalRank",
     cell: ({ row }) => {
-      const rank = row.original.globalRank;
+      const rank = row.original.originalRank;
       return <span className="font-medium text-sm">{rank}</span>;
     },
   },

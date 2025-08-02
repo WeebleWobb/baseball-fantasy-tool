@@ -105,6 +105,7 @@ export const mockPlayers: YahooPlayerStats[] = [
 // Mock Players with Rank (for DataTable tests)
 export const mockPlayersWithRank: PlayerWithRank[] = mockPlayers.map((player, index) => ({
   ...player,
+  originalRank: index + 1,
   globalRank: index + 1
 }))
 
@@ -133,6 +134,7 @@ export const mockPitchers: YahooPlayerStats[] = [
 // Mock Pitchers with Rank (for DataTable tests)
 export const mockPitchersWithRank: PlayerWithRank[] = mockPitchers.map((player, index) => ({
   ...player,
+  originalRank: index + 1,
   globalRank: index + 1
 }))
 
@@ -182,6 +184,7 @@ export const mockMalformedPlayer: PlayerWithRank = {
   name: { full: 'Bad Player', first: 'Bad', last: 'Player' },
   editorial_team_abbr: '',
   display_position: '',
+  originalRank: 999,
   globalRank: 999,
   player_stats: undefined // No stats at all
 }
@@ -191,6 +194,7 @@ export const mockPartialStatsPlayer: PlayerWithRank = {
   name: { full: 'Partial Stats', first: 'Partial', last: 'Stats' },
   editorial_team_abbr: 'TEX',
   display_position: 'SS',
+  originalRank: 200,
   globalRank: 200,
   player_stats: {
     stats: [
@@ -205,6 +209,7 @@ export const mockNoAtBatsPlayer: PlayerWithRank = {
   name: { full: 'Zero AB', first: 'Zero', last: 'AB' },
   editorial_team_abbr: 'MIA',
   display_position: 'C',
+  originalRank: 500,
   globalRank: 500,
   player_stats: {
     stats: [
@@ -231,6 +236,7 @@ export const createMockPlayer = (overrides: Partial<YahooPlayerStats> = {}): Yah
 
 export const createMockPlayerWithRank = (overrides: Partial<PlayerWithRank> = {}): PlayerWithRank => ({
   ...createMockPlayer(overrides),
+  originalRank: 50,
   globalRank: 50,
   ...overrides
 })
