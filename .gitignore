@@ -41,11 +41,6 @@ next-env.d.ts
 # Cursor rules
 .cursor/
 
-# Claude
-CLAUDE.md
-.claude/
-AGENTS.md
-
 #debug
 logs/
 
