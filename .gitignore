@@ -44,6 +44,7 @@ next-env.d.ts
 # Claude
 CLAUDE.md
 .claude/
+AGENTS.md
 
 #debug
 logs/
