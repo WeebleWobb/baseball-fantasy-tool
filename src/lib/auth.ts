@@ -2,12 +2,8 @@ import type { NextAuthOptions } from "next-auth";
 import type { OAuthConfig } from "next-auth/providers/oauth";
 import type { JWT } from "next-auth/jwt";
 import { jwtDecode } from "jwt-decode";
-import type {
-  YahooProfile,
-  YahooIdToken,
-  YahooTokens,
-  ExtendedSession,
-} from "@/types/auth";
+import type { YahooProfile, ExtendedSession } from "@/types/auth";
+import { parseYahooTokenResponse, yahooIdTokenSchema } from "@/lib/schemas/auth";
 
 declare module "next-auth" {
   interface Session {
@@ -50,14 +46,14 @@ export const authOptions: NextAuthOptions = {
             } as Record<string, string>),
           });
           
-          const tokens = await response.json();
-          
-          if (tokens.error) {
-            console.error("Token error:", tokens.error, tokens.error_description);
-            throw new Error(tokens.error_description || tokens.error);
+          const data = await response.json();
+          const result = parseYahooTokenResponse(data);
+
+          if (!result.success) {
+            throw new Error(result.error.error_description || result.error.error);
           }
-          
-          return { tokens };
+
+          return { tokens: result.tokens };
         },
       },
       clientId: process.env.YAHOO_CLIENT_ID,
@@ -65,7 +61,8 @@ export const authOptions: NextAuthOptions = {
       checks: ["state"],
       profile(profile: YahooProfile, tokens: { id_token?: string }) {
         if (tokens.id_token) {
-          const idToken = jwtDecode<YahooIdToken>(tokens.id_token);
+          const decoded = jwtDecode(tokens.id_token);
+          const idToken = yahooIdTokenSchema.parse(decoded);
           return {
             id: idToken.sub,
             name: idToken.sub, // Yahoo doesn't provide name in ID token
@@ -111,15 +108,18 @@ export const authOptions: NextAuthOptions = {
             }),
           });
 
-          const tokens = await response.json() as YahooTokens;
+          const data = await response.json();
+          const result = parseYahooTokenResponse(data);
 
-          if (!response.ok) throw tokens;
+          if (!result.success) {
+            throw new Error(result.error.error_description || result.error.error);
+          }
 
           return {
             ...token,
-            accessToken: tokens.access_token,
-            refreshToken: tokens.refresh_token ?? token.refreshToken,
-            expiresAt: Math.floor(Date.now() / 1000 + tokens.expires_in),
+            accessToken: result.tokens.access_token,
+            refreshToken: result.tokens.refresh_token ?? token.refreshToken,
+            expiresAt: Math.floor(Date.now() / 1000 + result.tokens.expires_in),
           };
         } catch (error) {
           console.error("Error refreshing access token", error);
