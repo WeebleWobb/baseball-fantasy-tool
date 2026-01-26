@@ -1,14 +1,8 @@
 import { BATTING_STAT_IDS, PITCHING_STAT_IDS } from '@/lib/constants'
-import type { 
-  YahooUserResponse, 
-  YahooPlayerStats, 
-  YahooPlayersResponse,
-  YahooGamesResponse,
-  PlayerWithRank 
-} from '@/types/yahoo-fantasy'
+import type { YahooPlayerStats, PlayerWithRank } from '@/types/yahoo-fantasy'
 
-// Mock User Data
-export const mockUserInfo: YahooUserResponse = {
+// Mock User Data (simplified structure for tests)
+export const mockUserInfo = {
   fantasy_content: {
     users: [{
       user: [
@@ -138,8 +132,8 @@ export const mockPitchersWithRank: PlayerWithRank[] = mockPitchers.map((player, 
   globalRank: index + 1
 }))
 
-// Mock API Response
-export const mockPlayersResponse: YahooPlayersResponse = {
+// Mock API Response (simplified structure for tests)
+export const mockPlayersResponse = {
   fantasy_content: {
     game: [
       {},
@@ -241,8 +235,8 @@ export const createMockPlayerWithRank = (overrides: Partial<PlayerWithRank> = {}
   ...overrides
 })
 
-// Mock Game Response (for Yahoo API tests)
-export const mockGameResponse: YahooGamesResponse = {
+// Mock Game Response (simplified structure for tests)
+export const mockGameResponse = {
   fantasy_content: {
     games: [
       {

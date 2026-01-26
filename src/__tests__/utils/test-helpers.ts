@@ -1,10 +1,8 @@
-import type { YahooPlayersResponse } from '@/types/yahoo-fantasy'
-
 /**
  * Helper function to create mock Yahoo Players API response
  * @param count - Number of players in the response
  * @param playerData - Array of player data objects
- * @returns Properly formatted YahooPlayersResponse
+ * @returns Properly formatted players response structure
  */
 export const createMockPlayersResponse = (count: number, playerData: Array<{
   player_key: string;
@@ -17,9 +15,9 @@ export const createMockPlayersResponse = (count: number, playerData: Array<{
       value: string | number;
     }>;
   };
-}>): YahooPlayersResponse => {
-  const players: YahooPlayersResponse['fantasy_content']['game'][1]['players'] = { count };
-  
+}>) => {
+  const players: Record<string, unknown> = { count };
+
   playerData.forEach((player, index) => {
     players[index.toString()] = {
       player: [
@@ -48,9 +46,9 @@ export const createMockPlayersResponse = (count: number, playerData: Array<{
 
 /**
  * Helper function to create empty Yahoo Players API response
- * @returns Empty YahooPlayersResponse with count: 0
+ * @returns Empty players response with count: 0
  */
-export const createEmptyPlayersResponse = (): YahooPlayersResponse => ({
+export const createEmptyPlayersResponse = () => ({
   fantasy_content: {
     game: [
       {},
@@ -82,4 +80,4 @@ export const createMockPlayerData = (overrides: Partial<{
   display_position: 'OF',
   player_stats: { stats: [] },
   ...overrides
-}); 
+});
