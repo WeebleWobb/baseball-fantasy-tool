@@ -24,9 +24,10 @@ For complete project context, see [AGENTS.md](./AGENTS.md)
 ### Working with Yahoo Fantasy API
 1. **Always verify endpoint exists** in official docs first: https://developer.yahoo.com/fantasysports/guide/
 2. Add method to `YahooFantasyAPI` class in `/lib/yahoo-fantasy.ts`
-3. Create Zod schema in `/lib/schemas/` for the API response
-4. Add TanStack Query hook to `/hooks/use-yahoo-fantasy.ts`
-5. Use hook in component with proper loading/error states
+3. Create Zod schema in `/lib/schemas/` for the API response (use `.passthrough()` for permissive validation)
+4. Use `requestWithValidation()` method to validate responses
+5. Add TanStack Query hook to `/hooks/use-yahoo-fantasy.ts`
+6. Use hook in component with proper loading/error states
 
 ### Creating Data Tables
 - Reference `/components/players-table/` for implementation patterns
@@ -40,4 +41,14 @@ For complete project context, see [AGENTS.md](./AGENTS.md)
 
 3. **All Yahoo API calls go through `/api/yahoo` proxy** - Never call `https://fantasysports.yahooapis.com` directly from client code
 
-4. **Use Zod only for external data boundaries** - API responses, OAuth tokens, user input, env vars. Use TypeScript interfaces for component props and internal logic
+4. **Use Zod only for external data boundaries** - API responses, OAuth tokens, env vars. Use TypeScript interfaces for component props and internal logic
+
+5. **Zod schemas use `.passthrough()`** - Yahoo API may return additional fields; never use `.strict()`
+
+## Zod Schema Locations
+
+- `src/lib/schemas/games.ts` - MLB game key responses
+- `src/lib/schemas/users.ts` - User profile responses
+- `src/lib/schemas/players.ts` - Player stats responses
+- `src/lib/schemas/auth.ts` - OAuth tokens and JWT validation
+- `src/lib/schemas/env.ts` - Environment variable validation

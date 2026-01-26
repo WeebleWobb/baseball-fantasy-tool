@@ -36,16 +36,35 @@ async getResourceName(params: ResourceParams): Promise<ResourceType> {
 ### 3. Create Zod Schema
 Location: `/lib/schemas/[resource-name].ts`
 
-Validate the Yahoo API response structure:
+Validate the Yahoo API response structure using `.passthrough()`:
 ```typescript
-export const ResourceSchema = z.object({
+export const resourceSchema = z.object({
   // Match Yahoo's response structure
-});
+  field: z.string(),
+}).passthrough(); // Always use passthrough - Yahoo may add fields
+
+export const resourceResponseSchema = z.object({
+  fantasy_content: z.object({
+    resource: z.tuple([...])
+  }).passthrough()
+}).passthrough();
 ```
 
 Export from `/lib/schemas/index.ts`
 
-### 4. Add TanStack Query Hook
+### 4. Use requestWithValidation
+In `YahooFantasyAPI` class, use the validation method:
+```typescript
+async getResource(): Promise<ResourceType> {
+  const data = await this.requestWithValidation(
+    '/resource/path',
+    resourceResponseSchema
+  );
+  return transformResourceResponse(data);
+}
+```
+
+### 5. Add TanStack Query Hook
 Location: `/hooks/use-yahoo-fantasy.ts`
 
 ```typescript
@@ -58,7 +77,7 @@ const useResourceName = (params: ResourceParams) => {
 };
 ```
 
-### 5. Use in Component
+### 6. Use in Component
 ```typescript
 const { data, isLoading, error } = useYahooFantasy().useResourceName(params);
 ```
@@ -77,12 +96,26 @@ fetch('https://fantasysports.yahooapis.com/...')
 ```
 
 ### Zod Validation at Boundary
-Yahoo API responses must be validated with Zod:
+Yahoo API responses are validated via `requestWithValidation()`:
 ```typescript
-const response = await fetch('/api/yahoo/resource');
-const data = await response.json();
-const validated = ResourceSchema.parse(data); // Validates structure
+// In YahooFantasyAPI class
+private async requestWithValidation<T>(
+  endpoint: string,
+  schema: { parse: (data: unknown) => T }
+): Promise<T> {
+  const data = await this.request<unknown>(endpoint);
+  return schema.parse(data);
+}
 ```
+
+### Existing Schemas
+| Schema | File | Validates |
+|--------|------|-----------|
+| `gamesResponseSchema` | `games.ts` | `/games;game_codes=mlb;seasons={year}` |
+| `usersResponseSchema` | `users.ts` | `/users;use_login=1/profile` |
+| `playersResponseSchema` | `players.ts` | `/game/{key}/players;.../stats` |
+| `yahooTokenResponseSchema` | `auth.ts` | OAuth token responses |
+| `yahooIdTokenSchema` | `auth.ts` | Decoded JWT tokens |
 
 ### Caching Strategy
 - **Current season data**: Short cache (5-15 minutes)
@@ -97,18 +130,31 @@ Yahoo uses composite keys: `{game_key}.l.{league_id}.t.{team_id}`
 Example: `423.l.12345.t.1` (2024 season, league 12345, team 1)
 
 ### Nested Responses
-Yahoo wraps data in nested objects:
+Yahoo wraps data in nested objects with numeric string keys (NOT arrays):
 ```typescript
 {
   fantasy_content: {
-    league: [{
-      // actual league data
-    }]
+    game: [
+      { game_key: "431", ... },
+      {
+        players: {
+          "0": { player: [...] },
+          "1": { player: [...] },
+          count: 25
+        }
+      }
+    ]
   }
 }
 ```
 
-Handle this in the API class before returning to hooks.
+**Key quirks to handle in schemas**:
+- Collections use objects with `"0"`, `"1"`, etc. keys plus a `count` field
+- Stats are wrapped: `{ stat: { stat_id: 60, value: ".300" } }`
+- Stat values can be `"-"` string for no data
+- Player metadata is an array of mixed object types
+
+Use transformer functions (e.g., `transformPlayersResponse()`) to convert to clean TypeScript types.
 
 ### Error Handling
 Common Yahoo API errors:
@@ -131,7 +177,10 @@ const avgStatId = BATTING_STATS.AVG; // Not hardcoded "60"
 After implementing new Yahoo API feature:
 - [ ] Endpoint verified in official documentation
 - [ ] API method added to YahooFantasyAPI class
-- [ ] Zod schema validates Yahoo response structure
+- [ ] Zod schema created with `.passthrough()` (never `.strict()`)
+- [ ] Schema exported from `/lib/schemas/index.ts`
+- [ ] `requestWithValidation()` used for API call
+- [ ] Transformer function created if response needs reshaping
 - [ ] TanStack Query hook created with appropriate caching
 - [ ] Component uses hook with loading/error states
 - [ ] Authentication flow tested (token refresh works)
