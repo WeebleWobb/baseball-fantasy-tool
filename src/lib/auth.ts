@@ -34,8 +34,7 @@ export const authOptions: NextAuthOptions = {
       token: {
         url: "https://api.login.yahoo.com/oauth2/get_token",
         async request({ params, provider }) {
-          const redirectUri = "https://localhost:3000/api/auth/callback/yahoo";
-
+          const redirectUri = `${process.env.NEXTAUTH_URL}/api/auth/callback/yahoo`;
           
           const response = await fetch("https://api.login.yahoo.com/oauth2/get_token", {
             method: "POST",
@@ -49,7 +48,7 @@ export const authOptions: NextAuthOptions = {
               redirect_uri: redirectUri,
             } as Record<string, string>),
           });
-
+          
           const tokens = await response.json();
           
           if (tokens.error) {
