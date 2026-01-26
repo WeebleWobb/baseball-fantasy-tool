@@ -28,14 +28,15 @@ export const authOptions: NextAuthOptions = {
         url: "https://api.login.yahoo.com/oauth2/request_auth",
         params: {
           response_type: "code",
-          scope: "openid fspt-r"
+          scope: "openid fspt-r",
+          redirect_uri: `${process.env.NEXTAUTH_URL}/api/auth/callback/yahoo`,
         },
       },
       token: {
         url: "https://api.login.yahoo.com/oauth2/get_token",
         async request({ params, provider }) {
           const redirectUri = `${process.env.NEXTAUTH_URL}/api/auth/callback/yahoo`;
-          
+
           const response = await fetch("https://api.login.yahoo.com/oauth2/get_token", {
             method: "POST",
             headers: {
