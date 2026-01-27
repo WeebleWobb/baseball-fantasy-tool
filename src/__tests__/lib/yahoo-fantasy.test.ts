@@ -67,10 +67,11 @@ describe('YahooFantasyAPI', () => {
 
     it('should throw error when no games found for current year', async () => {
       const currentYear = new Date().getFullYear().toString()
+      // Empty games collection (object with only count)
       mockedAxios.get.mockResolvedValue({
-        data: { fantasy_content: { games: [] } }
+        data: { fantasy_content: { games: { count: 0 } } }
       })
-      
+
       await expect(api.getMLBGameKey()).rejects.toThrow(`No MLB game found for season ${currentYear}`)
     })
   })
@@ -84,51 +85,55 @@ describe('YahooFantasyAPI', () => {
 
     it('should fetch and transform player data correctly', async () => {
       const players = await api.getMLBPlayers()
-      
+
       expect(players).toHaveLength(2)
-      expect(players[0]).toEqual({
-        player_key: '431.p.8967',
-        name: {
-          full: 'Mike Trout',
-          first: 'Mike',
-          last: 'Trout'
-        },
-        editorial_team_abbr: 'LAA',
-        display_position: 'OF',
-        player_stats: {
-          stats: [
-            { stat_id: BATTING_STAT_IDS.HITS, value: 150 },
-            { stat_id: BATTING_STAT_IDS.AT_BATS, value: 500 },
-            { stat_id: BATTING_STAT_IDS.HOME_RUNS, value: 35 },
-            { stat_id: BATTING_STAT_IDS.RBI, value: 100 },
-            { stat_id: BATTING_STAT_IDS.RUNS, value: 90 },
-            { stat_id: BATTING_STAT_IDS.STOLEN_BASES, value: 15 }
-          ]
-        }
+      // Check basic player info
+      expect(players[0].player_key).toBe('431.p.8967')
+      expect(players[0].name).toEqual({
+        full: 'Mike Trout',
+        first: 'Mike',
+        last: 'Trout'
       })
+      expect(players[0].editorial_team_abbr).toBe('LAA')
+      expect(players[0].display_position).toBe('OF')
+
+      // Check stats are transformed (unwrapped from Yahoo format)
+      expect(players[0].player_stats?.stats).toHaveLength(6)
+      expect(players[0].player_stats?.stats[0]).toEqual({ stat_id: BATTING_STAT_IDS.HITS, value: 150 })
+
+      // Check byStatId lookup is created
+      expect(players[0].player_stats?.byStatId).toBeDefined()
+      expect(players[0].player_stats?.byStatId?.[BATTING_STAT_IDS.HITS]).toBe(150)
+
       expect(players[1].display_position).toBe('2B,OF') // Multiple positions
     })
 
     it('should handle different player types correctly', async () => {
       const emptyResponse = createEmptyPlayersResponse()
-      
+
+      // Reset mocks and create fresh API instance for this test
+      mockedAxios.get.mockReset()
+      const freshApi = new YahooFantasyAPI(mockAccessToken)
+
       // Test batter types
       mockedAxios.get
         .mockResolvedValueOnce({ data: mockGameResponse })
         .mockResolvedValueOnce({ data: emptyResponse })
-      await api.getMLBPlayers({ playerType: 'ALL_BATTERS' })
+      await freshApi.getMLBPlayers({ playerType: 'ALL_BATTERS' })
       expect(mockedAxios.get).toHaveBeenLastCalledWith('/api/yahoo', {
         params: expect.objectContaining({
           endpoint: expect.stringContaining('position=B/stats')
         }),
         headers: { 'Authorization': `Bearer ${mockAccessToken}` }
       })
-      
-      // Test pitcher types
+
+      // Reset for pitcher test with fresh API instance
+      mockedAxios.get.mockReset()
+      const freshApi2 = new YahooFantasyAPI(mockAccessToken)
       mockedAxios.get
         .mockResolvedValueOnce({ data: mockGameResponse })
         .mockResolvedValueOnce({ data: emptyResponse })
-      await api.getMLBPlayers({ playerType: 'ALL_PITCHERS' })
+      await freshApi2.getMLBPlayers({ playerType: 'ALL_PITCHERS' })
       expect(mockedAxios.get).toHaveBeenLastCalledWith('/api/yahoo', {
         params: expect.objectContaining({
           endpoint: expect.stringContaining('position=P/stats')
@@ -138,20 +143,21 @@ describe('YahooFantasyAPI', () => {
     })
 
     it('should handle API failures and empty responses gracefully', async () => {
-      // Test API error
+      // Test API error - getMLBPlayers throws on error (unlike getMLBPlayersComprehensive)
       mockedAxios.get.mockReset()
+      const freshApi = new YahooFantasyAPI(mockAccessToken)
       mockedAxios.get.mockRejectedValue(new Error('Network Error'))
-      
-      const playersError = await api.getMLBPlayers()
-      expect(playersError).toEqual([])
-      
-      // Test empty response
+
+      await expect(freshApi.getMLBPlayers()).rejects.toThrow('Network Error')
+
+      // Test empty response - should return empty array
       mockedAxios.get.mockReset()
+      const freshApi2 = new YahooFantasyAPI(mockAccessToken)
       mockedAxios.get
         .mockResolvedValueOnce({ data: mockGameResponse })
         .mockResolvedValueOnce({ data: createEmptyPlayersResponse() })
-      
-      const playersEmpty = await api.getMLBPlayers()
+
+      const playersEmpty = await freshApi2.getMLBPlayers()
       expect(playersEmpty).toEqual([])
     })
 

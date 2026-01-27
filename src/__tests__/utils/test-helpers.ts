@@ -1,5 +1,20 @@
+// Game info for players response (matches real Yahoo API)
+const mockGameInfo = {
+  game_key: '431',
+  game_id: '431',
+  name: 'Baseball',
+  code: 'mlb',
+  type: 'full',
+  url: 'https://baseball.fantasysports.yahoo.com/b1',
+  season: '2025',
+  is_registration_over: 0,
+  is_game_over: 0,
+  is_offseason: 0
+};
+
 /**
  * Helper function to create mock Yahoo Players API response
+ * Matches real Yahoo API structure with wrapped stats
  * @param count - Number of players in the response
  * @param playerData - Array of player data objects
  * @returns Properly formatted players response structure
@@ -19,6 +34,11 @@ export const createMockPlayersResponse = (count: number, playerData: Array<{
   const players: Record<string, unknown> = { count };
 
   playerData.forEach((player, index) => {
+    // Wrap stats in { stat: {...} } format like real Yahoo API
+    const wrappedStats = player.player_stats?.stats.map(s => ({
+      stat: { stat_id: String(s.stat_id), value: s.value }
+    })) || [];
+
     players[index.toString()] = {
       player: [
         [
@@ -28,7 +48,9 @@ export const createMockPlayersResponse = (count: number, playerData: Array<{
           { display_position: player.display_position }
         ],
         {
-          player_stats: player.player_stats
+          player_stats: {
+            stats: wrappedStats
+          }
         }
       ]
     };
@@ -37,7 +59,7 @@ export const createMockPlayersResponse = (count: number, playerData: Array<{
   return {
     fantasy_content: {
       game: [
-        {},
+        mockGameInfo,
         { players }
       ]
     }
@@ -51,7 +73,7 @@ export const createMockPlayersResponse = (count: number, playerData: Array<{
 export const createEmptyPlayersResponse = () => ({
   fantasy_content: {
     game: [
-      {},
+      mockGameInfo,
       { players: { count: 0 } }
     ]
   }

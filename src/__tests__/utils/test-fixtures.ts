@@ -1,21 +1,24 @@
 import { BATTING_STAT_IDS, PITCHING_STAT_IDS } from '@/lib/constants'
 import type { YahooPlayerStats, PlayerWithRank } from '@/types/yahoo-fantasy'
 
-// Mock User Data (simplified structure for tests)
+// Mock User Data (matches real Yahoo API structure with numeric keys)
 export const mockUserInfo = {
   fantasy_content: {
-    users: [{
-      user: [
-        {}, // First element is typically empty in Yahoo API
-        {
-          profile: {
-            display_name: 'Test User',
-            fantasy_profile_url: 'https://example.com',
-            image_url: 'https://example.com/avatar.jpg'
+    users: {
+      count: 1,
+      "0": {
+        user: [
+          { guid: 'test-user-guid' },
+          {
+            profile: {
+              display_name: 'Test User',
+              fantasy_profile_url: 'https://example.com',
+              image_url: 'https://example.com/avatar.jpg'
+            }
           }
-        }
-      ]
-    }]
+        ]
+      }
+    }
   }
 }
 
@@ -132,14 +135,32 @@ export const mockPitchersWithRank: PlayerWithRank[] = mockPitchers.map((player, 
   globalRank: index + 1
 }))
 
-// Mock API Response (simplified structure for tests)
+// Game info for players response
+const mockGameInfo = {
+  game_key: '431',
+  game_id: '431',
+  name: 'Baseball',
+  code: 'mlb',
+  type: 'full',
+  url: 'https://baseball.fantasysports.yahoo.com/b1',
+  season: '2025',
+  is_registration_over: 0,
+  is_game_over: 0,
+  is_offseason: 0
+};
+
+// Helper to wrap stats in Yahoo's { stat: {...} } format
+const wrapStats = (stats: Array<{ stat_id: number; value: string | number }>) =>
+  stats.map(s => ({ stat: { stat_id: String(s.stat_id), value: s.value } }));
+
+// Mock API Response (matches real Yahoo API structure)
 export const mockPlayersResponse = {
   fantasy_content: {
     game: [
-      {},
+      mockGameInfo,
       {
         players: {
-          count: mockPlayers.length,
+          count: 2,
           "0": {
             player: [
               [
@@ -149,7 +170,9 @@ export const mockPlayersResponse = {
                 { display_position: mockPlayers[0].display_position }
               ],
               {
-                player_stats: mockPlayers[0].player_stats
+                player_stats: {
+                  stats: wrapStats(mockPlayers[0].player_stats?.stats || [])
+                }
               }
             ]
           },
@@ -162,7 +185,9 @@ export const mockPlayersResponse = {
                 { display_position: mockPlayers[1].display_position }
               ],
               {
-                player_stats: mockPlayers[1].player_stats
+                player_stats: {
+                  stats: wrapStats(mockPlayers[1].player_stats?.stats || [])
+                }
               }
             ]
           }
@@ -235,11 +260,12 @@ export const createMockPlayerWithRank = (overrides: Partial<PlayerWithRank> = {}
   ...overrides
 })
 
-// Mock Game Response (simplified structure for tests)
+// Mock Game Response (matches real Yahoo API structure with numeric keys)
 export const mockGameResponse = {
   fantasy_content: {
-    games: [
-      {
+    games: {
+      count: 1,
+      "0": {
         game: [
           {
             game_key: '431',
@@ -247,12 +273,15 @@ export const mockGameResponse = {
             name: 'Baseball',
             code: 'mlb',
             type: 'full',
-            season: '2025'
-          },
-          {}
+            url: 'https://baseball.fantasysports.yahoo.com/b1',
+            season: '2025',
+            is_registration_over: 0,
+            is_game_over: 0,
+            is_offseason: 0
+          }
         ]
       }
-    ]
+    }
   }
 }
 
@@ -295,20 +324,23 @@ export const mockGenericErrorData = {
   error: 'An unexpected error occurred'
 }
 
-// Mock successful Yahoo API response data
+// Mock successful Yahoo API response data (matches real structure)
 export const mockYahooAPISuccessData = {
   fantasy_content: {
-    users: [{
-      user: [
-        {},
-        {
-          profile: {
-            display_name: 'Test User',
-            fantasy_profile_url: 'https://example.com',
-            image_url: 'https://example.com/avatar.jpg'
+    users: {
+      count: 1,
+      "0": {
+        user: [
+          { guid: 'test-user-guid' },
+          {
+            profile: {
+              display_name: 'Test User',
+              fantasy_profile_url: 'https://example.com',
+              image_url: 'https://example.com/avatar.jpg'
+            }
           }
-        }
-      ]
-    }]
+        ]
+      }
+    }
   }
 } 

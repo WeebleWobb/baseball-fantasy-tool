@@ -214,12 +214,12 @@ describe('useYahooFantasy', () => {
       wrapper: createWrapper,
     })
 
-    // Hooks should return error states
-    expect(userInfoResult.result.current.data).toBeNull()
+    // Hooks should return error states (undefined, not null)
+    expect(userInfoResult.result.current.data).toBeUndefined()
     expect(userInfoResult.result.current.error).toEqual(new Error('Session expired'))
-    expect(playersResult.result.current.data).toBeNull()
+    expect(playersResult.result.current.data).toBeUndefined()
     expect(playersResult.result.current.error).toEqual(new Error('Session expired'))
-    expect(playersComprehensiveResult.result.current.data).toBeNull()
+    expect(playersComprehensiveResult.result.current.data).toBeUndefined()
     expect(playersComprehensiveResult.result.current.error).toEqual(new Error('Session expired'))
   })
 
