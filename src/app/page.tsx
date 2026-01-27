@@ -7,8 +7,7 @@ import { AuthGuard } from "@/components/auth-guard";
 import { AppHeader } from "@/components/app-header";
 import { PageHeader } from "@/components/page-header";
 import { DataTable } from "@/components/players-table/data-table";
-import type { PlayerWithRank } from "@/types/yahoo-fantasy";
-import type { UserProfile } from "@/types/user-profile";
+import { extractUserProfile } from "@/lib/user-profile";
 
 export default function Home() {
   const { useUserInfo } = useYahooFantasy();
@@ -16,11 +15,7 @@ export default function Home() {
 
   const playersData = usePlayersManager();
   const currentSeason = new Date().getFullYear().toString();
-  const userProfile: UserProfile = {
-    displayName: userInfo?.fantasy_content?.users?.[0]?.user?.[1]?.profile?.display_name,
-    profileUrl: userInfo?.fantasy_content?.users?.[0]?.user?.[1]?.profile?.fantasy_profile_url,
-    imageUrl: userInfo?.fantasy_content?.users?.[0]?.user?.[1]?.profile?.image_url,
-  };
+  const userProfile = extractUserProfile(userInfo);
 
   return (
     <AuthGuard>
@@ -36,7 +31,7 @@ export default function Home() {
         />
         <DataTable 
           columns={playersData.columns} 
-          data={playersData.filteredPlayers as PlayerWithRank[]} 
+          data={playersData.filteredPlayers} 
           isLoading={playersData.isLoading}
           totalMatchingPlayers={playersData.totalMatchingPlayers}
           hasMore={playersData.hasMore}

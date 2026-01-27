@@ -1,15 +1,18 @@
 import axios from 'axios';
-import type {
-  YahooUserResponse,
-  YahooGamesResponse,
-  YahooPlayerStats,
-  YahooPlayersResponse,
-} from '@/types/yahoo-fantasy';
+
 import type { PlayerFilterType } from '@/types/hooks';
+import type { YahooPlayerStats } from '@/types/yahoo-fantasy';
+import {
+  gamesResponseSchema,
+  usersResponseSchema,
+  playersResponseSchema,
+  type UsersResponse,
+  type PlayersResponse
+} from '@/lib/schemas';
 
 export class YahooFantasyAPI {
-  private accessToken: string;
-  private gameKeys: Map<string, string> = new Map();
+  private readonly accessToken: string;
+  private readonly gameKeys: Map<string, string> = new Map();
 
   constructor(accessToken: string) {
     this.accessToken = accessToken;
@@ -25,38 +28,51 @@ export class YahooFantasyAPI {
     return response.data;
   }
 
-  async getUserInfo(): Promise<YahooUserResponse> {
-    return this.request<YahooUserResponse>('/users;use_login=1/profile');
+  private async requestWithValidation<T>(
+    endpoint: string,
+    schema: { parse: (data: unknown) => T }
+  ): Promise<T> {
+    const data = await this.request<unknown>(endpoint);
+    return schema.parse(data);
+  }
+
+  async getUserInfo(): Promise<UsersResponse> {
+    return this.requestWithValidation(
+      '/users;use_login=1/profile',
+      usersResponseSchema
+    );
   }
 
   async getMLBGameKey(): Promise<string> {
-    // Always use current year
     const currentSeason = new Date().getFullYear().toString();
-    
-    // Check if we already have this season's key cached
+
     const cachedKey = this.gameKeys.get(currentSeason);
     if (cachedKey) return cachedKey;
-    
-    // Fetch the game key for the current season
-    const response = await this.request<YahooGamesResponse>(`/games;game_codes=mlb;seasons=${currentSeason}`);
-    const games = response.fantasy_content.games;
-    
-    if (games.length === 0) {
+
+    const response = await this.requestWithValidation(
+      `/games;game_codes=mlb;seasons=${currentSeason}`,
+      gamesResponseSchema
+    );
+
+    // Games is object with numeric keys, not array
+    const gamesObj = response.fantasy_content.games;
+    const firstGame = gamesObj['0'];
+
+    if (!firstGame || typeof firstGame === 'number') {
       throw new Error(`No MLB game found for season ${currentSeason}`);
     }
-    
-    const gameKey = games[0].game[0].game_key;
+
+    const gameKey = firstGame.game[0].game_key;
     this.gameKeys.set(currentSeason, gameKey);
     return gameKey;
   }
 
   private getYahooPositionParameter(playerType: PlayerFilterType = 'ALL_BATTERS'): string {
-    // Map filter types to Yahoo API position parameters
     switch (playerType) {
       case 'ALL_PITCHERS':
       case 'SP':
       case 'RP':
-        return 'P'; // Pitchers
+        return 'P';
       case 'ALL_BATTERS':
       case 'C':
       case '1B':
@@ -66,100 +82,90 @@ export class YahooFantasyAPI {
       case 'OF':
       case 'Util':
       default:
-        return 'B'; // Batters
+        return 'B';
     }
   }
 
-  async getMLBPlayers(options: { start?: number; count?: number; playerType?: PlayerFilterType; } = {}): Promise<YahooPlayerStats[]> {
-    const { start = 0, count = 25, playerType = 'ALL_BATTERS' } = options;
+  private transformPlayersResponse(response: PlayersResponse): YahooPlayerStats[] {
+    const players: YahooPlayerStats[] = [];
+    const playersData = response.fantasy_content.game[1].players;
 
-    try {
-      const gameKey = await this.getMLBGameKey();
-      const positionParam = this.getYahooPositionParameter(playerType);
-      
-      // Request players with their season stats, using dynamic position parameter
-      const endpoint = `/game/${gameKey}/players;start=${start};count=${count};sort=AR;status=A;position=${positionParam}/stats`;
-      const response = await this.request<YahooPlayersResponse>(endpoint);
-      
-      const playersData = response?.fantasy_content?.game?.[1]?.players;
-      if (!playersData || typeof playersData !== 'object') {
-        return [];
+    for (const key in playersData) {
+      if (key === 'count') continue;
+
+      const playerEntry = playersData[key];
+      if (typeof playerEntry === 'number') continue;
+
+      const playerMetadata = playerEntry.player[0];
+      const playerStatsData = playerEntry.player[1]?.player_stats;
+
+      // Extract player info from metadata array
+      let playerKey = '';
+      let name = { full: '', first: '', last: '' };
+      let editorialTeamAbbr = '';
+      let displayPosition = '';
+
+      for (const item of playerMetadata) {
+        if (item && typeof item === 'object' && !Array.isArray(item)) {
+          if ('player_key' in item) playerKey = item.player_key as string;
+          if ('name' in item) {
+            const nameData = item.name as { full: string; first: string; last: string };
+            name = nameData;
+          }
+          if ('editorial_team_abbr' in item) editorialTeamAbbr = item.editorial_team_abbr as string;
+          if ('display_position' in item) displayPosition = item.display_position as string;
+        }
       }
 
-      const players: YahooPlayerStats[] = [];
-      Object.entries(playersData).forEach(([key, value]) => {
-        if (key === 'count' || !value || typeof value !== 'object' || !('player' in value)) {
-          return;
-        }
-        
-        const playerArray = value.player;
-        if (!Array.isArray(playerArray) || playerArray.length < 1) {
-          return;
+      // Build byStatId lookup - stats are wrapped in { stat: { stat_id, value } }
+      let playerStats: YahooPlayerStats['player_stats'] = undefined;
+      if (playerStatsData?.stats) {
+        const byStatId: Record<number, string | number> = {};
+        const flatStats: Array<{ stat_id: number; value: string | number }> = [];
+
+        for (const statEntry of playerStatsData.stats) {
+          const stat = statEntry.stat;
+          const statId = parseInt(stat.stat_id, 10);
+          const value = stat.value;
+          byStatId[statId] = value;
+          flatStats.push({ stat_id: statId, value });
         }
 
-        // The player data is in the first element of the array, which is itself an array of objects
-        const playerDataArray = playerArray[0] as Array<Record<string, unknown>>;
-        
-        // Extract basic player info from the array of objects
-        const playerKey = playerDataArray.find((item) => item.player_key)?.player_key as string;
-        const nameObj = playerDataArray.find((item) => item.name);
-        const name = nameObj?.name as { full: string; first: string; last: string };
-        const teamAbbr = playerDataArray.find((item) => item.editorial_team_abbr)?.editorial_team_abbr as string;
-        const position = playerDataArray.find((item) => item.display_position)?.display_position as string;
-        
-        // Look for stats in the player array - stats are usually in the second element
-        let statsData = null;
-        if (playerArray.length > 1 && playerArray[1]?.player_stats) {
-          statsData = playerArray[1].player_stats;
-        }
-        
-        let processedStats: Array<{ stat_id: number; value: string | number }> = [];
-        if (statsData?.stats) {
-          // Handle different possible stats structures
-          if (Array.isArray(statsData.stats)) {
-            processedStats = statsData.stats.map((statItem: Record<string, unknown>) => {
-              // Check if it's wrapped in a 'stat' object
-              const stat = (statItem as Record<string, unknown>).stat || statItem;
-              return {
-                stat_id: parseInt(String((stat as Record<string, unknown>).stat_id || '0')),
-                value: ((stat as Record<string, unknown>).value as string | number) || 0
-              };
-            });
-          }
-        }
+        playerStats = {
+          stats: flatStats,
+          byStatId
+        };
+      }
 
-        if (playerKey && name) {
-          players.push({
-            player_key: playerKey,
-            name: {
-              full: name.full,
-              first: name.first,
-              last: name.last
-            },
-            editorial_team_abbr: teamAbbr || '',
-            display_position: position || '',
-            player_stats: {
-              stats: processedStats
-            }
-          });
-        }
+      players.push({
+        player_key: playerKey,
+        name,
+        editorial_team_abbr: editorialTeamAbbr,
+        display_position: displayPosition,
+        player_stats: playerStats
       });
-
-      return players;
-    } catch {
-      return [];
     }
+
+    return players;
   }
 
-  /**
-   * Fetch comprehensive dataset for position-based filtering
-   * This method loads large datasets with progressive loading and retry logic
-   */
-  async getMLBPlayersComprehensive(options: { playerType?: PlayerFilterType; maxPlayers?: number; } = {}): Promise<YahooPlayerStats[]> {
+  async getMLBPlayers(options: { start?: number; count?: number; playerType?: PlayerFilterType } = {}): Promise<YahooPlayerStats[]> {
+    const { start = 0, count = 25, playerType = 'ALL_BATTERS' } = options;
+
+    const gameKey = await this.getMLBGameKey();
+    const positionParam = this.getYahooPositionParameter(playerType);
+
+    const endpoint = `/game/${gameKey}/players;start=${start};count=${count};sort=AR;status=A;position=${positionParam}/stats`;
+
+    const response = await this.requestWithValidation(endpoint, playersResponseSchema);
+    return this.transformPlayersResponse(response);
+  }
+
+  async getMLBPlayersComprehensive(options: { playerType?: PlayerFilterType; maxPlayers?: number } = {}): Promise<YahooPlayerStats[]> {
     const { playerType = 'ALL_BATTERS', maxPlayers = 500 } = options;
-    const batchSize = 25; // Yahoo API typically returns 25 players per request
+    const batchSize = 25;
     const maxRetries = 3;
-    const retryDelay = 1000; // 1 second
+    const retryDelay = 1000;
 
     const allPlayers: YahooPlayerStats[] = [];
     let currentStart = 0;
@@ -180,28 +186,24 @@ export class YahooFantasyAPI {
 
           if (batchPlayers.length === 0) {
             consecutiveEmptyResponses++;
-            // Stop if we get 2 consecutive empty responses
             if (consecutiveEmptyResponses >= 2) {
               hasMorePlayers = false;
             }
           } else {
             consecutiveEmptyResponses = 0;
             allPlayers.push(...batchPlayers);
-            
-            // If we got fewer players than requested, we've likely reached the end
+
             if (batchPlayers.length < batchSize) {
               hasMorePlayers = false;
             }
           }
 
           success = true;
-        } catch (error) {
+        } catch {
           retryCount++;
           if (retryCount < maxRetries) {
-            // Exponential backoff
             await new Promise(resolve => setTimeout(resolve, retryDelay * Math.pow(2, retryCount - 1)));
           } else {
-            console.warn(`Failed to fetch players batch starting at ${currentStart} after ${maxRetries} retries:`, error);
             hasMorePlayers = false;
           }
         }
@@ -212,4 +214,4 @@ export class YahooFantasyAPI {
 
     return allPlayers;
   }
-} 
+}

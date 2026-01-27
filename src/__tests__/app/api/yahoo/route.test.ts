@@ -143,7 +143,8 @@ describe('Yahoo API Route', () => {
     expect(mockNextResponseJson).toHaveBeenCalledWith(
       {
         error: 'Failed to fetch from Yahoo API',
-        details: { error: { description: 'Invalid token' } }
+        message: { error: { description: 'Invalid token' } },
+        statusCode: 401
       },
       { status: 401 }
     )
@@ -156,7 +157,8 @@ describe('Yahoo API Route', () => {
     expect(mockNextResponseJson).toHaveBeenCalledWith(
       {
         error: 'Failed to fetch from Yahoo API',
-        details: 'Network Error'
+        message: 'Network Error',
+        statusCode: 500
       },
       { status: 500 }
     )
@@ -165,7 +167,11 @@ describe('Yahoo API Route', () => {
     mockAxiosGet.mockRejectedValue(new Error('Unexpected error'))
     await GET(request)
     expect(mockNextResponseJson).toHaveBeenCalledWith(
-      { error: 'An unexpected error occurred' },
+      {
+        error: 'An unexpected error occurred',
+        message: 'Unexpected error',
+        statusCode: 500
+      },
       { status: 500 }
     )
   })

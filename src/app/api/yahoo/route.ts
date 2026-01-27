@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import axios, { AxiosError } from 'axios';
+import { logResponse } from '@/lib/schemas/dev-logger';
 
 const YAHOO_FANTASY_BASE_URL = 'https://fantasysports.yahooapis.com/fantasy/v2';
 
@@ -27,29 +28,29 @@ export async function GET(request: Request) {
       }
     });
 
+    // Log response in development for schema building
+    logResponse(endpoint, response.data);
+
     return NextResponse.json(response.data);
   } catch (error: unknown) {
     if (error instanceof AxiosError) {
-      console.error('Yahoo API Error Details:', {
-        message: error.message,
-        status: error.response?.status,
-        statusText: error.response?.statusText,
-        data: error.response?.data,
-        headers: error.response?.headers
-      });
-
       return NextResponse.json(
-        { 
+        {
           error: 'Failed to fetch from Yahoo API',
-          details: error.response?.data || error.message
+          message: error.response?.data || error.message,
+          statusCode: error.response?.status || 500
         },
         { status: error.response?.status || 500 }
       );
     }
-    
+
     return NextResponse.json(
-      { error: 'An unexpected error occurred' },
+      {
+        error: 'An unexpected error occurred',
+        message: error instanceof Error ? error.message : 'Unknown error',
+        statusCode: 500
+      },
       { status: 500 }
     );
   }
-} 
+}

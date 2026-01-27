@@ -52,16 +52,52 @@ Required environment variables: See `.env.example`
 ## Validation Strategy (Critical)
 
 ### Zod at External Boundaries Only
-- **Use Zod schemas for**: Yahoo API responses, OAuth tokens, user input, environment variables
+- **Use Zod schemas for**: Yahoo API responses, OAuth tokens, environment variables
 - **Use TypeScript interfaces for**: Component props, hooks, state management, internal business logic
 - **Schema Location**: All Zod schemas organized in `src/lib/schemas/` with centralized exports
 
+### Implemented Schemas
+
+| Schema File | Purpose | Key Function |
+|-------------|---------|--------------|
+| `games.ts` | MLB game key responses | `gamesResponseSchema` |
+| `users.ts` | User profile responses | `usersResponseSchema` |
+| `players.ts` | Player stats responses | `playersResponseSchema`, `transformPlayersResponse()` |
+| `auth.ts` | OAuth token validation | `parseYahooTokenResponse()`, `yahooIdTokenSchema` |
+| `env.ts` | Environment variables | `validateEnv()`, `getEnv()` |
+
+### Key Patterns
+
+**Always use `.passthrough()`** - Yahoo API may return additional fields not in our schemas:
+```typescript
+export const gameSchema = z.object({
+  game_key: z.string(),
+  game_id: z.string(),
+  // ... known fields
+}).passthrough(); // Allow extra fields
+```
+
+**Use `requestWithValidation()` for API calls**:
+```typescript
+// In YahooFantasyAPI class
+const data = await this.requestWithValidation(endpoint, gamesResponseSchema);
+```
+
+**OAuth token parsing with discriminated result**:
+```typescript
+const result = parseYahooTokenResponse(data);
+if (!result.success) {
+  throw new Error(result.error.error_description || result.error.error);
+}
+return { tokens: result.tokens };
+```
+
 ### Validation Boundaries
 Apply Zod validation at:
-- API client methods (Yahoo API responses)
-- Authentication flows (OAuth tokens)
-- Data transformation utilities
-- Environment variable parsing
+- API client methods (Yahoo API responses via `requestWithValidation`)
+- Authentication flows (OAuth tokens via `parseYahooTokenResponse`)
+- JWT decoding (`yahooIdTokenSchema.parse()`)
+- Environment variable parsing (`getEnv()`)
 
 **Do NOT use Zod for**: Internal component props, hook parameters, or application state
 
@@ -103,18 +139,31 @@ Apply Zod validation at:
 - **Use stat ID constants from `/lib/constants.ts`** - Never hardcode Yahoo stat IDs
 
 ### Yahoo API Response Structure
-Yahoo wraps data in nested objects:
+Yahoo wraps data in nested objects with numeric string keys (not arrays):
 ```typescript
 {
   fantasy_content: {
-    resource: [{
-      // actual data here
-    }]
+    game: [
+      { game_key: "431", ... },
+      {
+        players: {
+          "0": { player: [...] },
+          "1": { player: [...] },
+          count: 25
+        }
+      }
+    ]
   }
 }
 ```
 
-Handle unwrapping in the API class before returning to hooks.
+**Key quirks**:
+- Collections use objects with `"0"`, `"1"`, etc. keys plus a `count` field
+- Stats are wrapped: `{ stat: { stat_id: 60, value: ".300" } }`
+- Stat values can be `"-"` string for no data
+- Player metadata is an array of mixed object types
+
+Handle transformation in Zod schemas (e.g., `transformPlayersResponse()`) before returning to hooks.
 
 ## Security & API Patterns
 

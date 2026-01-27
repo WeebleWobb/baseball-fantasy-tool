@@ -2,6 +2,8 @@ import { useQuery } from '@tanstack/react-query';
 import { useSession, signOut } from 'next-auth/react';
 import { YahooFantasyAPI } from '@/lib/yahoo-fantasy';
 import type { UsePlayersOptions } from '@/types/hooks';
+import type { YahooPlayerStats } from '@/types/yahoo-fantasy';
+import type { UsersResponse } from '@/lib/schemas';
 import { useMemo } from 'react';
 
 // Cache duration constants in milliseconds
@@ -23,7 +25,7 @@ function useNetworkPerformance(): boolean {
     if (typeof window === 'undefined') {
       return false; // Default to fast connection during SSR
     }
-    
+
     // Check if we're on a slow connection
     if ('connection' in navigator) {
       const connection = (navigator as Record<string, unknown>).connection;
@@ -40,21 +42,21 @@ function useNetworkPerformance(): boolean {
 export function useYahooFantasy() {
   const { data: session } = useSession();
   const isSlowConnection = useNetworkPerformance();
-  
+
   // Handle token refresh errors
   if (session?.error === 'RefreshAccessTokenError') {
     signOut({ redirect: true, callbackUrl: "/" });
     return {
-      useUserInfo: () => ({ data: null, isLoading: false, error: new Error('Session expired') }),
-      usePlayers: () => ({ data: null, isLoading: false, error: new Error('Session expired') }),
-      usePlayersComprehensive: () => ({ data: null, isLoading: false, error: new Error('Session expired') }),
+      useUserInfo: () => ({ data: undefined, isLoading: false, error: new Error('Session expired') }),
+      usePlayers: () => ({ data: undefined, isLoading: false, error: new Error('Session expired') }),
+      usePlayersComprehensive: () => ({ data: undefined, isLoading: false, error: new Error('Session expired') }),
     };
   }
 
   const api = session?.accessToken ? new YahooFantasyAPI(session.accessToken) : null;
 
   const useUserInfo = () => {
-    return useQuery({
+    return useQuery<UsersResponse | undefined>({
       queryKey: ['user-info'],
       queryFn: () => api?.getUserInfo(),
       enabled: !!api,
@@ -67,7 +69,7 @@ export function useYahooFantasy() {
   const usePlayers = (options: UsePlayersOptions = {}) => {
     const { start = 0, count = 25, playerType = 'ALL_BATTERS' } = options;
 
-    return useQuery({
+    return useQuery<YahooPlayerStats[] | undefined>({
       queryKey: ['players', start, count, playerType],
       queryFn: () => api?.getMLBPlayers({ start, count, playerType }),
       enabled: !!api,
@@ -79,7 +81,7 @@ export function useYahooFantasy() {
 
   /**
    * Hook for comprehensive dataset loading - simplified approach
-   * Key improvements: 
+   * Key improvements:
    * 1. Remove slow connection disabling (let users decide)
    * 2. Better caching by playerType only (not per filter)
    * 3. Reduce maxPlayers to 200 for better performance
@@ -87,10 +89,10 @@ export function useYahooFantasy() {
   const usePlayersComprehensive = (options: UsePlayersOptions = {}) => {
     const { playerType = 'ALL_BATTERS', fetchAll = false } = options;
 
-    return useQuery({
+    return useQuery<YahooPlayerStats[] | undefined>({
       queryKey: ['players-comprehensive', playerType], // Cache by playerType only
-      queryFn: () => api?.getMLBPlayersComprehensive({ 
-        playerType, 
+      queryFn: () => api?.getMLBPlayersComprehensive({
+        playerType,
         maxPlayers: isSlowConnection ? 200 : 500 // Adaptive limit
       }),
       enabled: !!api && fetchAll, // Remove slow connection disabling
@@ -108,4 +110,4 @@ export function useYahooFantasy() {
     usePlayers,
     usePlayersComprehensive,
   };
-} 
+}

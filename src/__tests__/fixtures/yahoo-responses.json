@@ -1,0 +1,337 @@
+{
+  "description": "Real Yahoo Fantasy API responses for schema building and tests",
+  "captured": "2026-01-26",
+  "games": {
+    "endpoint": "/games;game_codes=mlb;seasons=2026",
+    "response": {
+      "fantasy_content": {
+        "xml:lang": "en-US",
+        "yahoo:uri": "/fantasy/v2/games;game_codes=mlb;seasons=2026",
+        "games": {
+          "0": {
+            "game": [
+              {
+                "game_key": "469",
+                "game_id": "469",
+                "name": "Baseball",
+                "code": "mlb",
+                "type": "full",
+                "url": "https://baseball.fantasysports.yahoo.com/b1",
+                "season": "2026",
+                "is_registration_over": 0,
+                "is_game_over": 0,
+                "is_offseason": 0,
+                "alternate_start_deadline": "2025-03-26"
+              }
+            ]
+          },
+          "count": 1
+        },
+        "time": "20.323038101196ms",
+        "copyright": "Certain Data by Sportradar, Stats Perform and Rotowire",
+        "refresh_rate": "60"
+      }
+    }
+  },
+  "users": {
+    "endpoint": "/users;use_login=1/profile",
+    "response": {
+      "fantasy_content": {
+        "xml:lang": "en-US",
+        "yahoo:uri": "/fantasy/v2/users;use_login=1/profile",
+        "users": {
+          "0": {
+            "user": [
+              {
+                "guid": "POHFU3YUU7RLLDQ24SH4WBSJHA"
+              },
+              {
+                "profile": {
+                  "display_name": "Juan",
+                  "fantasy_profile_url": "https://profiles.sports.yahoo.com/user/POHFU3YUU7RLLDQ24SH4WBSJHA",
+                  "legal_jurisdiction": "us",
+                  "image_url": "https://s.yimg.com/ag/images/7a032fc5-401b-4349-950a-c23f539f51bf_64sq.jpg",
+                  "unique_username": "Juan-V3MJK"
+                }
+              }
+            ]
+          },
+          "count": 1
+        },
+        "time": "35.269021987915ms",
+        "copyright": "Certain Data by Sportradar, Stats Perform and Rotowire",
+        "refresh_rate": "60"
+      }
+    }
+  },
+  "players": {
+    "endpoint": "/game/469/players;start=0;count=25;sort=AR;status=A;position=B/stats",
+    "response": {
+      "fantasy_content": {
+        "xml:lang": "en-US",
+        "yahoo:uri": "/fantasy/v2/game/469/players;start=0;count=25;sort=AR;status=A;position=B/stats",
+        "game": [
+          {
+            "game_key": "469",
+            "game_id": "469",
+            "name": "Baseball",
+            "code": "mlb",
+            "type": "full",
+            "url": "https://baseball.fantasysports.yahoo.com/b1",
+            "season": "2026",
+            "is_registration_over": 0,
+            "is_game_over": 0,
+            "is_offseason": 0,
+            "alternate_start_deadline": "2025-03-26"
+          },
+          {
+            "players": {
+              "0": {
+                "player": [
+                  [
+                    { "player_key": "469.p.9877" },
+                    { "player_id": "9877" },
+                    {
+                      "name": {
+                        "full": "Aaron Judge",
+                        "first": "Aaron",
+                        "last": "Judge",
+                        "ascii_first": "Aaron",
+                        "ascii_last": "Judge"
+                      }
+                    },
+                    { "url": "https://sports.yahoo.com/mlb/players/9877" },
+                    { "editorial_player_key": "mlb.p.9877" },
+                    { "editorial_team_key": "mlb.t.10" },
+                    { "editorial_team_full_name": "New York Yankees" },
+                    { "editorial_team_abbr": "NYY" },
+                    { "editorial_team_url": "https://sports.yahoo.com/mlb/teams/ny-yankees/" },
+                    { "is_keeper": { "status": false, "cost": false } },
+                    { "uniform_number": "99" },
+                    { "display_position": "OF" },
+                    {
+                      "headshot": {
+                        "url": "https://s.yimg.com/iu/api/res/1.2/e9N9NOYZ6tnzXWKhouccxQ--~C/YXBwaWQ9eXNwb3J0cztjaD0yMzM2O2NyPTE7Y3c9MTc5MDtkeD04NTc7ZHk9MDtmaT11bGNyb3A7aD02MDtxPTEwMDt3PTQ2/https://s.yimg.com/xe/i/us/sp/v/mlb_cutout/players_l/04042025/9877.png",
+                        "size": "small"
+                      },
+                      "image_url": "https://s.yimg.com/iu/api/res/1.2/e9N9NOYZ6tnzXWKhouccxQ--~C/YXBwaWQ9eXNwb3J0cztjaD0yMzM2O2NyPTE7Y3c9MTc5MDtkeD04NTc7ZHk9MDtmaT11bGNyb3A7aD02MDtxPTEwMDt3PTQ2/https://s.yimg.com/xe/i/us/sp/v/mlb_cutout/players_l/04042025/9877.png"
+                    },
+                    { "is_undroppable": "0" },
+                    { "position_type": "B" },
+                    [],
+                    {
+                      "eligible_positions": [
+                        { "position": "CF" },
+                        { "position": "LF" },
+                        { "position": "OF" },
+                        { "position": "RF" }
+                      ]
+                    },
+                    { "eligible_positions_to_add": [] },
+                    [],
+                    [],
+                    { "has_player_notes": 1 },
+                    [],
+                    []
+                  ],
+                  {
+                    "player_stats": {
+                      "0": { "coverage_type": "season", "season": "2026" },
+                      "stats": [
+                        { "stat": { "stat_id": "0", "value": "-" } },
+                        { "stat": { "stat_id": "1", "value": "-" } },
+                        { "stat": { "stat_id": "2", "value": "-" } },
+                        { "stat": { "stat_id": "6", "value": "-" } },
+                        { "stat": { "stat_id": "7", "value": "-" } },
+                        { "stat": { "stat_id": "8", "value": "-" } },
+                        { "stat": { "stat_id": "9", "value": "-" } },
+                        { "stat": { "stat_id": "10", "value": "-" } },
+                        { "stat": { "stat_id": "11", "value": "-" } },
+                        { "stat": { "stat_id": "12", "value": "-" } },
+                        { "stat": { "stat_id": "13", "value": "-" } },
+                        { "stat": { "stat_id": "14", "value": "-" } },
+                        { "stat": { "stat_id": "15", "value": "-" } },
+                        { "stat": { "stat_id": "16", "value": "-" } },
+                        { "stat": { "stat_id": "17", "value": "-" } },
+                        { "stat": { "stat_id": "18", "value": "-" } },
+                        { "stat": { "stat_id": "19", "value": "-" } },
+                        { "stat": { "stat_id": "20", "value": "-" } },
+                        { "stat": { "stat_id": "21", "value": "-" } },
+                        { "stat": { "stat_id": "22", "value": "-" } },
+                        { "stat": { "stat_id": "23", "value": "-" } },
+                        { "stat": { "stat_id": "51", "value": "-" } },
+                        { "stat": { "stat_id": "52", "value": "-" } },
+                        { "stat": { "stat_id": "53", "value": "-" } },
+                        { "stat": { "stat_id": "54", "value": "-" } },
+                        { "stat": { "stat_id": "3", "value": "-" } },
+                        { "stat": { "stat_id": "4", "value": "-" } },
+                        { "stat": { "stat_id": "5", "value": "-" } },
+                        { "stat": { "stat_id": "55", "value": "-" } },
+                        { "stat": { "stat_id": "58", "value": "-" } },
+                        { "stat": { "stat_id": "59", "value": "-" } },
+                        { "stat": { "stat_id": "61", "value": "-" } },
+                        { "stat": { "stat_id": "62", "value": "-" } },
+                        { "stat": { "stat_id": "63", "value": "-" } },
+                        { "stat": { "stat_id": "64", "value": "-" } },
+                        { "stat": { "stat_id": "65", "value": "-" } },
+                        { "stat": { "stat_id": "66", "value": "-" } },
+                        { "stat": { "stat_id": "86", "value": "-" } },
+                        { "stat": { "stat_id": "87", "value": "-" } },
+                        { "stat": { "stat_id": "88", "value": "-" } }
+                      ]
+                    },
+                    "player_advanced_stats": {
+                      "0": { "coverage_type": "season", "season": "2026" },
+                      "stats": [
+                        { "stat": { "stat_id": "1035", "value": "-" } },
+                        { "stat": { "stat_id": "1008", "value": "-" } },
+                        { "stat": { "stat_id": "1013", "value": "-" } },
+                        { "stat": { "stat_id": "1002", "value": "-" } },
+                        { "stat": { "stat_id": "1014", "value": "-" } },
+                        { "stat": { "stat_id": "1015", "value": "-" } },
+                        { "stat": { "stat_id": "1011", "value": "-" } },
+                        { "stat": { "stat_id": "1005", "value": "-" } },
+                        { "stat": { "stat_id": "1006", "value": "-" } },
+                        { "stat": { "stat_id": "1009", "value": "-" } },
+                        { "stat": { "stat_id": "1007", "value": "-" } },
+                        { "stat": { "stat_id": "1010", "value": "-" } },
+                        { "stat": { "stat_id": "1004", "value": "-" } },
+                        { "stat": { "stat_id": "1039", "value": "-" } },
+                        { "stat": { "stat_id": "1003", "value": "-" } },
+                        { "stat": { "stat_id": "1040", "value": "-" } },
+                        { "stat": { "stat_id": "1041", "value": "-" } }
+                      ]
+                    }
+                  }
+                ]
+              },
+              "1": {
+                "player": [
+                  [
+                    { "player_key": "469.p.9190" },
+                    { "player_id": "9190" },
+                    {
+                      "name": {
+                        "full": "Donovan Solano",
+                        "first": "Donovan",
+                        "last": "Solano",
+                        "ascii_first": "Donovan",
+                        "ascii_last": "Solano"
+                      }
+                    },
+                    { "url": "https://sports.yahoo.com/mlb/players/9190" },
+                    { "status": "NA", "status_full": "Not Active" },
+                    { "editorial_player_key": "mlb.p.9190" },
+                    { "editorial_team_key": "mlb.t.13" },
+                    { "editorial_team_full_name": "Texas Rangers" },
+                    { "editorial_team_abbr": "TEX" },
+                    { "editorial_team_url": "https://sports.yahoo.com/mlb/teams/texas/" },
+                    { "is_keeper": { "status": false, "cost": false } },
+                    { "uniform_number": "16" },
+                    { "display_position": "1B" },
+                    {
+                      "headshot": {
+                        "url": "https://s.yimg.com/iu/api/res/1.2/6wRSaAVEHutlAeumpVBYxw--~C/YXBwaWQ9eXNwb3J0cztjaD0yMzM2O2NyPTE7Y3c9MTc5MDtkeD04NTc7ZHk9MDtmaT11bGNyb3A7aD02MDtxPTEwMDt3PTQ2/https://s.yimg.com/xe/i/us/sp/v/mlb_cutout/players_l/04032025/9190.1.png",
+                        "size": "small"
+                      },
+                      "image_url": "https://s.yimg.com/iu/api/res/1.2/6wRSaAVEHutlAeumpVBYxw--~C/YXBwaWQ9eXNwb3J0cztjaD0yMzM2O2NyPTE7Y3c9MTc5MDtkeD04NTc7ZHk9MDtmaT11bGNyb3A7aD02MDtxPTEwMDt3PTQ2/https://s.yimg.com/xe/i/us/sp/v/mlb_cutout/players_l/04032025/9190.1.png"
+                    },
+                    { "is_undroppable": "0" },
+                    { "position_type": "B" },
+                    [],
+                    {
+                      "eligible_positions": [
+                        { "position": "1B" },
+                        { "position": "CI" },
+                        { "position": "IF" }
+                      ]
+                    },
+                    { "eligible_positions_to_add": [] },
+                    [],
+                    [],
+                    [],
+                    [],
+                    []
+                  ],
+                  {
+                    "player_stats": {
+                      "0": { "coverage_type": "season", "season": "2026" },
+                      "stats": [
+                        { "stat": { "stat_id": "0", "value": "-" } },
+                        { "stat": { "stat_id": "1", "value": "-" } },
+                        { "stat": { "stat_id": "2", "value": "-" } },
+                        { "stat": { "stat_id": "6", "value": "-" } },
+                        { "stat": { "stat_id": "7", "value": "-" } },
+                        { "stat": { "stat_id": "8", "value": "-" } },
+                        { "stat": { "stat_id": "9", "value": "-" } },
+                        { "stat": { "stat_id": "10", "value": "-" } },
+                        { "stat": { "stat_id": "11", "value": "-" } },
+                        { "stat": { "stat_id": "12", "value": "-" } },
+                        { "stat": { "stat_id": "13", "value": "-" } },
+                        { "stat": { "stat_id": "14", "value": "-" } },
+                        { "stat": { "stat_id": "15", "value": "-" } },
+                        { "stat": { "stat_id": "16", "value": "-" } },
+                        { "stat": { "stat_id": "17", "value": "-" } },
+                        { "stat": { "stat_id": "18", "value": "-" } },
+                        { "stat": { "stat_id": "19", "value": "-" } },
+                        { "stat": { "stat_id": "20", "value": "-" } },
+                        { "stat": { "stat_id": "21", "value": "-" } },
+                        { "stat": { "stat_id": "22", "value": "-" } },
+                        { "stat": { "stat_id": "23", "value": "-" } },
+                        { "stat": { "stat_id": "51", "value": "-" } },
+                        { "stat": { "stat_id": "52", "value": "-" } },
+                        { "stat": { "stat_id": "53", "value": "-" } },
+                        { "stat": { "stat_id": "54", "value": "-" } },
+                        { "stat": { "stat_id": "3", "value": "-" } },
+                        { "stat": { "stat_id": "4", "value": "-" } },
+                        { "stat": { "stat_id": "5", "value": "-" } },
+                        { "stat": { "stat_id": "55", "value": "-" } },
+                        { "stat": { "stat_id": "58", "value": "-" } },
+                        { "stat": { "stat_id": "59", "value": "-" } },
+                        { "stat": { "stat_id": "61", "value": "-" } },
+                        { "stat": { "stat_id": "62", "value": "-" } },
+                        { "stat": { "stat_id": "63", "value": "-" } },
+                        { "stat": { "stat_id": "64", "value": "-" } },
+                        { "stat": { "stat_id": "65", "value": "-" } },
+                        { "stat": { "stat_id": "66", "value": "-" } },
+                        { "stat": { "stat_id": "86", "value": "-" } },
+                        { "stat": { "stat_id": "87", "value": "-" } },
+                        { "stat": { "stat_id": "88", "value": "-" } }
+                      ]
+                    },
+                    "player_advanced_stats": {
+                      "0": { "coverage_type": "season", "season": "2026" },
+                      "stats": [
+                        { "stat": { "stat_id": "1035", "value": "-" } },
+                        { "stat": { "stat_id": "1008", "value": "-" } },
+                        { "stat": { "stat_id": "1013", "value": "-" } },
+                        { "stat": { "stat_id": "1002", "value": "-" } },
+                        { "stat": { "stat_id": "1014", "value": "-" } },
+                        { "stat": { "stat_id": "1015", "value": "-" } },
+                        { "stat": { "stat_id": "1011", "value": "-" } },
+                        { "stat": { "stat_id": "1005", "value": "-" } },
+                        { "stat": { "stat_id": "1006", "value": "-" } },
+                        { "stat": { "stat_id": "1009", "value": "-" } },
+                        { "stat": { "stat_id": "1007", "value": "-" } },
+                        { "stat": { "stat_id": "1010", "value": "-" } },
+                        { "stat": { "stat_id": "1004", "value": "-" } },
+                        { "stat": { "stat_id": "1039", "value": "-" } },
+                        { "stat": { "stat_id": "1003", "value": "-" } },
+                        { "stat": { "stat_id": "1040", "value": "-" } },
+                        { "stat": { "stat_id": "1041", "value": "-" } }
+                      ]
+                    }
+                  }
+                ]
+              },
+              "count": 2
+            }
+          }
+        ],
+        "time": "150.12345ms",
+        "copyright": "Certain Data by Sportradar, Stats Perform and Rotowire",
+        "refresh_rate": "60"
+      }
+    }
+  }
+}
