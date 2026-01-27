@@ -35,6 +35,9 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# Override global gitignore for src/lib
+!src/lib/
+
 # SWC compiler cache
 .swc/
 
