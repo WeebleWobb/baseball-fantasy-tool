@@ -19,20 +19,20 @@ export const mockSignOut = signOut as jest.MockedFunction<typeof signOut>
  * Provides sensible defaults for all hook methods
  */
 export const createMockYahooFantasyHook = (overrides: Partial<ReturnType<typeof useYahooFantasy>> = {}) => ({
-  useUserInfo: jest.fn().mockReturnValue({ 
-    data: mockUserInfo, 
+  useUserInfo: jest.fn().mockReturnValue({
+    data: mockUserInfo,
     isLoading: false,
-    error: null 
+    error: null
   }),
-  usePlayers: jest.fn().mockReturnValue({ 
-    data: mockPlayersWithRank, 
+  usePlayers: jest.fn().mockReturnValue({
+    data: mockPlayersWithRank,
     isLoading: false,
-    error: null 
+    error: null
   }),
-  usePlayersComprehensive: jest.fn().mockReturnValue({ 
-    data: undefined, 
+  usePlayersComprehensive: jest.fn().mockReturnValue({
+    data: mockPlayersWithRank,
     isLoading: false,
-    error: null 
+    error: null
   }),
   ...overrides
 })
@@ -106,7 +106,8 @@ export const setupUnauthenticatedState = () => {
 export const setupEmptyDataState = () => {
   mockUseSession.mockReturnValue(createMockSessionAuthenticated())
   mockUseYahooFantasy.mockReturnValue(createMockYahooFantasyHook({
-    usePlayers: jest.fn().mockReturnValue({ data: [], isLoading: false })
+    usePlayers: jest.fn().mockReturnValue({ data: [], isLoading: false }),
+    usePlayersComprehensive: jest.fn().mockReturnValue({ data: [], isLoading: false })
   }))
 }
 
