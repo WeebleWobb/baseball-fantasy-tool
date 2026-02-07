@@ -28,6 +28,7 @@ const customJestConfig = {
     '!src/lib/constants.ts',
     '!src/lib/auth.ts',
     '!src/lib/schemas/dev-logger.ts',
+    '!src/components/ui/**',
   ],
   testMatch: [
     '<rootDir>/src/**/__tests__/**/*.{test,spec}.{js,jsx,ts,tsx}',
