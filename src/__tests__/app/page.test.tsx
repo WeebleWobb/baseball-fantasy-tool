@@ -16,6 +16,11 @@ jest.mock('@/hooks/use-yahoo-fantasy', () => ({
   useYahooFantasy: jest.fn(),
 }))
 
+jest.mock('next/navigation', () => ({
+  useRouter: jest.fn(() => ({ push: jest.fn(), replace: jest.fn() })),
+  usePathname: jest.fn(() => '/'),
+}))
+
 const mockUseSession = useSession as jest.MockedFunction<typeof useSession>
 const mockUseYahooFantasy = useYahooFantasy as jest.MockedFunction<typeof useYahooFantasy>
 const mockSignIn = signIn as jest.MockedFunction<typeof signIn>
