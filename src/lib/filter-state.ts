@@ -13,13 +13,15 @@ const VALID_FILTERS: PlayerFilterType[] = [
  * @returns The stored filter or default filter if invalid/not found
  */
 export function getStoredFilter(): PlayerFilterType {
+  if (globalThis.window === undefined) {
+    return DEFAULT_FILTER
+  }
   try {
     const stored = localStorage.getItem(STORAGE_KEY)
-    return VALID_FILTERS.includes(stored as PlayerFilterType) 
-      ? (stored as PlayerFilterType) 
+    return VALID_FILTERS.includes(stored as PlayerFilterType)
+      ? (stored as PlayerFilterType)
       : DEFAULT_FILTER
-  } catch (error) {
-    console.warn('Could not retrieve filter preference from localStorage:', error)
+  } catch {
     return DEFAULT_FILTER
   }
 }
@@ -29,16 +31,16 @@ export function getStoredFilter(): PlayerFilterType {
  * @param filter - The filter to save
  */
 export function saveFilter(filter: PlayerFilterType): void {
+  if (globalThis.window === undefined) {
+    return
+  }
   try {
-    // Validate filter before saving
     if (!VALID_FILTERS.includes(filter)) {
-      console.warn(`Invalid filter value: ${filter}, using default`)
       filter = DEFAULT_FILTER
     }
-    
     localStorage.setItem(STORAGE_KEY, filter)
-  } catch (error) {
-    console.warn('Could not save filter preference to localStorage:', error)
+  } catch {
+    // localStorage unavailable
   }
 }
 
@@ -46,10 +48,13 @@ export function saveFilter(filter: PlayerFilterType): void {
  * Clear stored filter and reset to default
  */
 export function clearStoredFilter(): void {
+  if (globalThis.window === undefined) {
+    return
+  }
   try {
     localStorage.removeItem(STORAGE_KEY)
-  } catch (error) {
-    console.warn('Could not clear filter preference from localStorage:', error)
+  } catch {
+    // localStorage unavailable
   }
 }
 
