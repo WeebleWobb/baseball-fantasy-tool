@@ -186,8 +186,10 @@ describe('utils.ts - Position and Filter Utilities', () => {
   describe('cn (className utility)', () => {
     it('should merge and override Tailwind classes correctly', () => {
       expect(cn('class1', 'class2')).toBe('class1 class2')
-      expect(cn('base', true && 'conditional')).toBe('base conditional')
-      expect(cn('base', false && 'conditional')).toBe('base')
+      const showConditional = true
+      const hideConditional = false
+      expect(cn('base', showConditional && 'conditional')).toBe('base conditional')
+      expect(cn('base', hideConditional && 'conditional')).toBe('base')
       expect(cn('p-4', 'p-2')).toBe('p-2') // Later Tailwind class wins
       expect(cn()).toBe('')
     })

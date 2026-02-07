@@ -18,7 +18,7 @@ export function useInfiniteScroll({
 }: UseInfiniteScrollProps): InfiniteScrollHookReturn {
   const [isNearBottom, setIsNearBottom] = useState(false)
   const [loadingMore, setLoadingMore] = useState(false)
-  
+
   // Use ref for synchronous access to loading state to prevent race conditions
   const loadingRef = useRef(false)
   const previousDataLengthRef = useRef(dataLength)
@@ -34,23 +34,23 @@ export function useInfiniteScroll({
 
   const handleScroll = useCallback(() => {
     if (!hasMore || loadingRef.current) return
-    
+
     const tableContainer = containerRef.current || getTableContainer()
-    
+
     if (!tableContainer) return
-    
+
     if (!containerRef.current) {
       containerRef.current = tableContainer
     }
-    
+
     const scrollHeight = tableContainer.scrollHeight
     const scrollTop = tableContainer.scrollTop
     const clientHeight = tableContainer.clientHeight
     const distanceFromBottom = scrollHeight - scrollTop - clientHeight
     const nearBottom = distanceFromBottom <= threshold
-    
+
     setIsNearBottom(nearBottom)
-    
+
     if (nearBottom) {
       loadingRef.current = true
       setLoadingMore(true)
@@ -91,14 +91,14 @@ export function useInfiniteScroll({
     }
 
     const scrollableContainer = getTableContainer()
-    
+
     if (!scrollableContainer) return
-    
+
     // Cache the container for scroll handling optimization
     if (!containerRef.current) {
       containerRef.current = scrollableContainer
     }
-    
+
     scrollableContainer.addEventListener('scroll', throttledScrollHandler, { passive: true })
 
     return () => {
@@ -115,4 +115,4 @@ export function useInfiniteScroll({
     isNearBottom,
     loadingMore
   }
-} 
+}
