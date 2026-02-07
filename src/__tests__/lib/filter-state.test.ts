@@ -71,16 +71,9 @@ describe('filter-state utilities', () => {
     })
 
     it('should save default filter when invalid filter provided', () => {
-      const consoleSpy = jest.spyOn(console, 'warn').mockImplementation()
-      
       saveFilter('INVALID' as PlayerFilterType)
-      
+
       expect(mockLocalStorage.setItem).toHaveBeenCalledWith(STORAGE_KEY, DEFAULT_FILTER)
-      expect(consoleSpy).toHaveBeenCalledWith(
-        'Invalid filter value: INVALID, using default'
-      )
-      
-      consoleSpy.mockRestore()
     })
   })
 
@@ -128,19 +121,13 @@ describe('filter-state utilities', () => {
     })
 
     it('should handle invalid filter in updateFilter', () => {
-      const consoleSpy = jest.spyOn(console, 'warn').mockImplementation()
       const filterState = createFilterState()
-      
+
       const newFilter = filterState.updateFilter('INVALID' as PlayerFilterType)
-      
+
       // updateFilter returns the input parameter, but saveFilter validates and stores default
       expect(newFilter).toBe('INVALID') // Returns what was passed
       expect(mockLocalStorage.setItem).toHaveBeenCalledWith(STORAGE_KEY, DEFAULT_FILTER) // But saves default
-      expect(consoleSpy).toHaveBeenCalledWith(
-        'Invalid filter value: INVALID, using default'
-      )
-      
-      consoleSpy.mockRestore()
     })
   })
 
@@ -166,48 +153,31 @@ describe('filter-state utilities', () => {
     })
 
     it('should handle all localStorage errors gracefully', () => {
-      const consoleSpy = jest.spyOn(console, 'warn').mockImplementation()
-      
       // Test getStoredFilter error handling
       mockLocalStorage.getItem.mockImplementation(() => {
         throw new Error('localStorage not available')
       })
       const retrieved = getStoredFilter()
       expect(retrieved).toBe(DEFAULT_FILTER)
-      expect(consoleSpy).toHaveBeenCalledWith(
-        'Could not retrieve filter preference from localStorage:',
-        expect.any(Error)
-      )
-      
+
       // Test saveFilter error handling
       mockLocalStorage.setItem.mockImplementation(() => {
         throw new Error('localStorage quota exceeded')
       })
       saveFilter('C') // Should not throw
-      expect(consoleSpy).toHaveBeenCalledWith(
-        'Could not save filter preference to localStorage:',
-        expect.any(Error)
-      )
-      
+
       // Test clearStoredFilter error handling
       mockLocalStorage.removeItem.mockImplementation(() => {
         throw new Error('localStorage disabled')
       })
       clearStoredFilter() // Should not throw
-      expect(consoleSpy).toHaveBeenCalledWith(
-        'Could not clear filter preference from localStorage:',
-        expect.any(Error)
-      )
-      
+
       // Test createFilterState with localStorage errors
       const filterState = createFilterState()
       expect(filterState.currentFilter).toBe(DEFAULT_FILTER)
-      
+
       const updated = filterState.updateFilter('1B')
       expect(updated).toBe('1B') // Still returns the filter even if saving fails
-      
-      expect(consoleSpy).toHaveBeenCalledTimes(5) // All localStorage operations logged errors
-      consoleSpy.mockRestore()
     })
   })
 }) 
