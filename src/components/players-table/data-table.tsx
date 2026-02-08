@@ -30,6 +30,7 @@ interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
   data: TData[]
   isLoading?: boolean
+  initialLoadCount?: number
   totalMatchingPlayers?: number
   hasMore?: boolean
   onLoadMore?: () => void
@@ -43,6 +44,7 @@ export function DataTable<TData, TValue>({
   columns,
   data,
   isLoading,
+  initialLoadCount = 25,
   totalMatchingPlayers = 0,
   hasMore = false,
   onLoadMore,
@@ -70,17 +72,51 @@ export function DataTable<TData, TValue>({
     },
   })
 
-  // Table loading skeleton - only shows the table portion
-  const tableLoadingSkeleton = (
-    <div className="w-full space-y-3">
-      <div className="h-4 bg-gray-200 rounded animate-pulse w-1/4" />
-      <div className="rounded-lg border">
-        {Array.from({ length: 5 }).map((_, i) => (
-          <div key={i} className="h-16 border-b bg-gray-50 animate-pulse" />
-        ))}
-      </div>
-    </div>
-  )
+  const renderTableRows = () => {
+    if (isLoading) {
+      return Array.from({ length: initialLoadCount }).map((_, i) => (
+        <TableRow key={`skeleton-${i}`}>
+          {columns.map((_, colIndex) => (
+            <TableCell className="p-2" key={`skeleton-${i}-${colIndex}`}>
+              <div className="h-2 bg-gray-200 rounded animate-pulse my-1.5" />
+            </TableCell>
+          ))}
+        </TableRow>
+      ))
+    }
+
+    const rows = table.getRowModel().rows
+    if (!rows?.length) {
+      return (
+        <TableRow>
+          <TableCell colSpan={columns.length} className="h-24 text-center">
+            No results.
+          </TableCell>
+        </TableRow>
+      )
+    }
+
+    return rows.map((row) => (
+      <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
+        {row.getVisibleCells().map((cell: Cell<TData, TValue>) => {
+          const isRankColumn = cell.column.id === 'rank'
+          const isNameColumn = cell.column.id === 'name_full'
+
+          return (
+            <TableCell
+              key={cell.id}
+              className={cn(
+                isRankColumn && 'bg-red w-24 pl-4',
+                isNameColumn && 'pl-4'
+              )}
+            >
+              {flexRender(cell.column.columnDef.cell, cell.getContext())}
+            </TableCell>
+          )
+        })}
+      </TableRow>
+    ))
+  }
 
   return (
     <>
@@ -103,68 +139,28 @@ export function DataTable<TData, TValue>({
         )}
       </div>
 
-      {/* Table - shows skeleton when loading */}
-      {isLoading ? tableLoadingSkeleton : (
+      {/* Table - header always visible, body shows skeleton when loading */}
       <Table>
         <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => {
-                  return (
-                    <TableHead key={header.id}>
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
-                    </TableHead>
-                  )
-                })}
-              </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
-                >
-                  {row.getVisibleCells().map((cell: Cell<TData, TValue>) => {
-                    const isRankColumn = cell.column.id === 'rank'
-                    const isNameColumn = cell.column.id === 'name_full'
-                    
-                    return (
-                      <TableCell 
-                        key={cell.id} 
-                        className={cn(
-                          isRankColumn && 'bg-red w-24 pl-4',
-                          isNameColumn && 'pl-4'
-                        )}
-                      >
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext()
-                        )}
-                      </TableCell>
-                    )
-                  })}
-                </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-24 text-center"
-                >
-                  No results.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      )}
+          {table.getHeaderGroups().map((headerGroup) => (
+            <TableRow key={headerGroup.id}>
+              {headerGroup.headers.map((header) => (
+                <TableHead key={header.id}>
+                  {header.isPlaceholder
+                    ? null
+                    : flexRender(
+                        header.column.columnDef.header,
+                        header.getContext()
+                      )}
+                </TableHead>
+              ))}
+            </TableRow>
+          ))}
+        </TableHeader>
+        <TableBody>
+          {renderTableRows()}
+        </TableBody>
+      </Table>
 
       {/* Infinite Scroll Status and Loading - only show when not in initial loading */}
       {!isLoading && (
