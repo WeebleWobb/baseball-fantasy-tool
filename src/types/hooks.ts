@@ -1,4 +1,4 @@
-export type PlayerFilterType = 
+export type PlayerFilterType =
   | 'ALL_BATTERS'
   | 'ALL_PITCHERS'
   | 'C'
@@ -11,11 +11,23 @@ export type PlayerFilterType =
   | 'SP'
   | 'RP';
 
+// Season selection for dropdown
+export type SeasonType = 'current' | 'last';
+
+// Time period filter (only applicable when SeasonType is 'current')
+export type TimePeriodType = 'full' | 'lastmonth' | 'lastweek';
+
+// Yahoo API stat_type parameter values
+// Note: 'lastseason' requires querying previous year's game key, not a type param
+export type StatType = 'season' | 'lastmonth' | 'lastweek';
+
 export interface UsePlayersOptions {
   start?: number;
   count?: number;
   playerType?: PlayerFilterType;
-  fetchAll?: boolean; // New option for comprehensive dataset loading
+  fetchAll?: boolean;
+  statType?: StatType;
+  seasonYear?: 'current' | 'last';  // Which season to query (affects game key)
 }
 
 export interface PlayersQueryResult<T = unknown> {
@@ -24,4 +36,4 @@ export interface PlayersQueryResult<T = unknown> {
   isLoadingCurrentPage: boolean;
   isLoadingFullDataset: boolean;
   error?: Error;
-} 
+}
