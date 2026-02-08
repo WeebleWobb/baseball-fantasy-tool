@@ -35,7 +35,6 @@ interface DataTableProps<TData, TValue> {
   onLoadMore?: () => void
   activeFilter?: PlayerFilterType
   onFilterChange?: (filter: PlayerFilterType) => void
-  disabled?: boolean
   searchTerm?: string
   onSearchChange?: (searchTerm: string) => void
 }
@@ -49,7 +48,6 @@ export function DataTable<TData, TValue>({
   onLoadMore,
   activeFilter = 'ALL_BATTERS',
   onFilterChange,
-  disabled = false,
   searchTerm = "",
   onSearchChange,
 }: DataTableProps<TData, TValue>) {
@@ -72,38 +70,41 @@ export function DataTable<TData, TValue>({
     },
   })
 
-  if (isLoading) {
-    return (
-      <div className="w-full space-y-3">
-        <div className="h-4 bg-gray-200 rounded animate-pulse w-1/4" />
-        <div className="rounded-lg border">
-          {Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="h-16 border-b bg-gray-50 animate-pulse" />
-          ))}
-        </div>
+  // Table loading skeleton - only shows the table portion
+  const tableLoadingSkeleton = (
+    <div className="w-full space-y-3">
+      <div className="h-4 bg-gray-200 rounded animate-pulse w-1/4" />
+      <div className="rounded-lg border">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <div key={i} className="h-16 border-b bg-gray-50 animate-pulse" />
+        ))}
       </div>
-    )
-  }
+    </div>
+  )
 
   return (
     <>
-      {/* Search Input */}
+      {/* Search Input and Position Filters - visible but disabled during loading */}
       <div className="flex flex-col mb-4 lg:flex-row lg:items-center lg:justify-between">
         <Input
           placeholder="Search Player"
           value={searchTerm ?? ""}
           onChange={(event) => onSearchChange?.(event.target.value)}
           className="max-w-xs mb-4 lg:mb-0"
+          disabled={isLoading}
         />
         {/* Filter Buttons */}
         {onFilterChange && (
           <FilterButtons
             activeFilter={activeFilter}
             onFilterChange={onFilterChange}
-            disabled={disabled}
+            disabled={isLoading}
           />
         )}
       </div>
+
+      {/* Table - shows skeleton when loading */}
+      {isLoading ? tableLoadingSkeleton : (
       <Table>
         <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -163,14 +164,17 @@ export function DataTable<TData, TValue>({
             )}
           </TableBody>
         </Table>
-      
-      {/* Infinite Scroll Status and Loading */}
-      <LoadingIndicator 
-        hasMore={hasMore} 
-        isNearBottom={isNearBottom}
-        currentCount={data.length}
-        totalCount={totalMatchingPlayers}
-      />
+      )}
+
+      {/* Infinite Scroll Status and Loading - only show when not in initial loading */}
+      {!isLoading && (
+        <LoadingIndicator
+          hasMore={hasMore}
+          isNearBottom={isNearBottom}
+          currentCount={data.length}
+          totalCount={totalMatchingPlayers}
+        />
+      )}
     </>
   )
 } 
