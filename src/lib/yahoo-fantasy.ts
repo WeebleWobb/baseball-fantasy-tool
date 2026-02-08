@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-import type { PlayerFilterType } from '@/types/hooks';
+import type { PlayerFilterType, StatType } from '@/types/hooks';
 import type { YahooPlayerStats } from '@/types/yahoo-fantasy';
 import {
   gamesResponseSchema,
@@ -43,14 +43,16 @@ export class YahooFantasyAPI {
     );
   }
 
-  async getMLBGameKey(): Promise<string> {
-    const currentSeason = new Date().getFullYear().toString();
+  async getMLBGameKey(seasonYear: 'current' | 'last' = 'current'): Promise<string> {
+    const currentYear = new Date().getFullYear();
+    const targetYear = seasonYear === 'last' ? currentYear - 1 : currentYear;
+    const targetSeason = targetYear.toString();
 
-    const cachedKey = this.gameKeys.get(currentSeason);
+    const cachedKey = this.gameKeys.get(targetSeason);
     if (cachedKey) return cachedKey;
 
     const response = await this.requestWithValidation(
-      `/games;game_codes=mlb;seasons=${currentSeason}`,
+      `/games;game_codes=mlb;seasons=${targetSeason}`,
       gamesResponseSchema
     );
 
@@ -59,11 +61,11 @@ export class YahooFantasyAPI {
     const firstGame = gamesObj['0'];
 
     if (!firstGame || typeof firstGame === 'number') {
-      throw new Error(`No MLB game found for season ${currentSeason}`);
+      throw new Error(`No MLB game found for season ${targetSeason}`);
     }
 
     const gameKey = firstGame.game[0].game_key;
-    this.gameKeys.set(currentSeason, gameKey);
+    this.gameKeys.set(targetSeason, gameKey);
     return gameKey;
   }
 
@@ -149,20 +151,26 @@ export class YahooFantasyAPI {
     return players;
   }
 
-  async getMLBPlayers(options: { start?: number; count?: number; playerType?: PlayerFilterType } = {}): Promise<YahooPlayerStats[]> {
-    const { start = 0, count = 25, playerType = 'ALL_BATTERS' } = options;
+  async getMLBPlayers(options: { start?: number; count?: number; playerType?: PlayerFilterType; statType?: StatType; seasonYear?: 'current' | 'last' } = {}): Promise<YahooPlayerStats[]> {
+    const { start = 0, count = 25, playerType = 'ALL_BATTERS', statType = 'season', seasonYear = 'current' } = options;
 
-    const gameKey = await this.getMLBGameKey();
+    const gameKey = await this.getMLBGameKey(seasonYear);
     const positionParam = this.getYahooPositionParameter(playerType);
 
-    const endpoint = `/game/${gameKey}/players;start=${start};count=${count};sort=AR;status=A;position=${positionParam}/stats`;
+    // Build endpoint - stat type is parameter on /stats subresource
+    let endpoint = `/game/${gameKey}/players;start=${start};count=${count};sort=AR;status=A;position=${positionParam}/stats`;
+
+    // Append stat type to stats subresource (omit if 'season' since it's default)
+    if (statType && statType !== 'season') {
+      endpoint += `;type=${statType}`;
+    }
 
     const response = await this.requestWithValidation(endpoint, playersResponseSchema);
     return this.transformPlayersResponse(response);
   }
 
-  async getMLBPlayersComprehensive(options: { playerType?: PlayerFilterType; maxPlayers?: number } = {}): Promise<YahooPlayerStats[]> {
-    const { playerType = 'ALL_BATTERS', maxPlayers = 500 } = options;
+  async getMLBPlayersComprehensive(options: { playerType?: PlayerFilterType; maxPlayers?: number; statType?: StatType; seasonYear?: 'current' | 'last' } = {}): Promise<YahooPlayerStats[]> {
+    const { playerType = 'ALL_BATTERS', maxPlayers = 500, statType = 'season', seasonYear = 'current' } = options;
     const batchSize = 25;
     const maxRetries = 3;
     const retryDelay = 1000;
@@ -181,7 +189,9 @@ export class YahooFantasyAPI {
           const batchPlayers = await this.getMLBPlayers({
             start: currentStart,
             count: batchSize,
-            playerType
+            playerType,
+            statType,
+            seasonYear
           });
 
           if (batchPlayers.length === 0) {
@@ -199,12 +209,13 @@ export class YahooFantasyAPI {
           }
 
           success = true;
-        } catch {
+        } catch (error) {
           retryCount++;
           if (retryCount < maxRetries) {
             await new Promise(resolve => setTimeout(resolve, retryDelay * Math.pow(2, retryCount - 1)));
           } else {
-            hasMorePlayers = false;
+            // Throw the error instead of silently failing so UI can display it
+            throw error;
           }
         }
       }

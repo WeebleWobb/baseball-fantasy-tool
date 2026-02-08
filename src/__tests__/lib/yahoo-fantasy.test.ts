@@ -264,12 +264,10 @@ describe('YahooFantasyAPI', () => {
       })
     })
 
-    it('should handle API errors gracefully', async () => {
+    it('should throw API errors after retries exhausted', async () => {
       mockedAxios.get.mockRejectedValue(new Error('Network error'))
 
-      const players = await api.getMLBPlayersComprehensive()
-
-      expect(players).toEqual([])
+      await expect(api.getMLBPlayersComprehensive()).rejects.toThrow('Network error')
     })
 
     it('should stop when receiving empty response', async () => {

@@ -87,15 +87,17 @@ export function useYahooFantasy() {
    * 3. Reduce maxPlayers to 200 for better performance
    */
   const usePlayersComprehensive = (options: UsePlayersOptions = {}) => {
-    const { playerType = 'ALL_BATTERS', fetchAll = false } = options;
+    const { playerType = 'ALL_BATTERS', fetchAll = false, statType = 'season', seasonYear = 'current' } = options;
 
     return useQuery<YahooPlayerStats[] | undefined>({
-      queryKey: ['players-comprehensive', playerType], // Cache by playerType only
+      queryKey: ['players-comprehensive', playerType, statType, seasonYear],
       queryFn: () => api?.getMLBPlayersComprehensive({
         playerType,
-        maxPlayers: isSlowConnection ? 200 : 500 // Adaptive limit
+        maxPlayers: isSlowConnection ? 200 : 500,
+        statType,
+        seasonYear
       }),
-      enabled: !!api && fetchAll, // Remove slow connection disabling
+      enabled: !!api && fetchAll,
       gcTime: CACHE_DURATIONS.DAY,
       staleTime: CACHE_DURATIONS.HOUR * 4,
       refetchOnWindowFocus: false,

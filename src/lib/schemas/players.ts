@@ -26,11 +26,13 @@ export const statEntrySchema = z.object({
   })
 });
 
-// Player stats container
+// Player stats container - coverage info varies by stat type
 export const playerStatsContainerSchema = z.object({
   '0': z.object({
-    coverage_type: z.string(),
-    season: z.string()
+    coverage_type: z.string().optional(),
+    season: z.string().optional(),
+    week: z.string().optional(),
+    date: z.string().optional()
   }).passthrough().optional(),
   stats: z.array(statEntrySchema)
 }).passthrough();
@@ -75,12 +77,13 @@ export const playerStatsWrapperSchema = z.object({
   player_advanced_stats: playerStatsContainerSchema.optional()
 }).passthrough();
 
-// Full player entry
+// Full player entry - use min-length array to allow additional elements
+// Yahoo API returns varying array structures for different stat types
 export const playerEntrySchema = z.object({
   player: z.tuple([
-    z.array(playerMetadataItemSchema),  // Metadata array
-    playerStatsWrapperSchema            // Stats object
-  ])
+    z.array(playerMetadataItemSchema),  // Metadata array (first element)
+    playerStatsWrapperSchema            // Stats object (second element)
+  ]).rest(z.unknown())                  // Allow additional elements beyond the required two
 });
 
 // Players collection - object with numeric keys + count
