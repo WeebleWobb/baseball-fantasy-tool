@@ -308,7 +308,8 @@ describe('useYahooFantasy', () => {
       expect(mockApiInstance.getMLBPlayersComprehensive).toHaveBeenCalledWith({
         playerType: 'ALL_BATTERS',
         maxPlayers: 500, // Fast connection default
-        statType: 'season'
+        statType: 'season',
+        seasonYear: 'current'
       })
       expect(playersResult.result.current.data).toEqual(mockPlayersSimple)
     })
@@ -357,13 +358,15 @@ describe('useYahooFantasy', () => {
       expect(mockApiInstance.getMLBPlayersComprehensive).toHaveBeenCalledWith({
         playerType: 'ALL_BATTERS',
         maxPlayers: 500,
-        statType: 'season'
+        statType: 'season',
+        seasonYear: 'current'
       })
 
       expect(mockApiInstance.getMLBPlayersComprehensive).toHaveBeenCalledWith({
         playerType: 'ALL_PITCHERS',
         maxPlayers: 500,
-        statType: 'season'
+        statType: 'season',
+        seasonYear: 'current'
       })
 
       // Should have been called twice (separate cache entries)
@@ -438,7 +441,8 @@ describe('useYahooFantasy', () => {
       expect(mockApiInstance.getMLBPlayersComprehensive).toHaveBeenCalledWith({
         playerType: 'ALL_BATTERS',
         maxPlayers: 200, // Reduced limit for slow connections
-        statType: 'season'
+        statType: 'season',
+        seasonYear: 'current'
       })
     })
 
@@ -461,7 +465,8 @@ describe('useYahooFantasy', () => {
       expect(mockApiInstance.getMLBPlayersComprehensive).toHaveBeenCalledWith({
         playerType: 'ALL_BATTERS',
         maxPlayers: 200, // Reduced limit for slow connections
-        statType: 'season'
+        statType: 'season',
+        seasonYear: 'current'
       })
     })
 
@@ -488,7 +493,8 @@ describe('useYahooFantasy', () => {
       expect(mockApiInstance.getMLBPlayersComprehensive).toHaveBeenCalledWith({
         playerType: 'ALL_BATTERS',
         maxPlayers: 500,
-        statType: 'season'
+        statType: 'season',
+        seasonYear: 'current'
       })
     })
   })
