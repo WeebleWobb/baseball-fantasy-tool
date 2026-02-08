@@ -29,12 +29,6 @@ describe('SeasonSelector', () => {
       expect(screen.getByText('Last Season')).toBeInTheDocument()
     })
 
-    it('should display Career when season prop is career', () => {
-      render(<SeasonSelector {...defaultProps} season="career" />)
-
-      expect(screen.getByText('Career')).toBeInTheDocument()
-    })
-
     it('should be disabled when disabled prop is true', () => {
       render(<SeasonSelector {...defaultProps} disabled={true} />)
 
@@ -53,14 +47,6 @@ describe('SeasonSelector', () => {
 
     it('should hide time period buttons when season is last', () => {
       render(<SeasonSelector {...defaultProps} season="last" />)
-
-      expect(screen.queryByRole('radio', { name: 'Full' })).not.toBeInTheDocument()
-      expect(screen.queryByRole('radio', { name: 'Last Month' })).not.toBeInTheDocument()
-      expect(screen.queryByRole('radio', { name: 'Last Week' })).not.toBeInTheDocument()
-    })
-
-    it('should hide time period buttons when season is career', () => {
-      render(<SeasonSelector {...defaultProps} season="career" />)
 
       expect(screen.queryByRole('radio', { name: 'Full' })).not.toBeInTheDocument()
       expect(screen.queryByRole('radio', { name: 'Last Month' })).not.toBeInTheDocument()

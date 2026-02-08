@@ -46,16 +46,11 @@ describe('season-state utilities', () => {
   })
 
   describe('deriveStatType', () => {
-    it('should return "lastseason" for last season', () => {
-      expect(deriveStatType('last', 'full')).toBe('lastseason')
-      expect(deriveStatType('last', 'lastmonth')).toBe('lastseason')
-      expect(deriveStatType('last', 'lastweek')).toBe('lastseason')
-    })
-
-    it('should return "career" for career', () => {
-      expect(deriveStatType('career', 'full')).toBe('career')
-      expect(deriveStatType('career', 'lastmonth')).toBe('career')
-      expect(deriveStatType('career', 'lastweek')).toBe('career')
+    it('should return "season" for last season (uses different game key, not stat type)', () => {
+      // Last season queries previous year's game key, but stat type is still 'season'
+      expect(deriveStatType('last', 'full')).toBe('season')
+      expect(deriveStatType('last', 'lastmonth')).toBe('season')
+      expect(deriveStatType('last', 'lastweek')).toBe('season')
     })
 
     it('should return "season" for current season with full period', () => {
@@ -99,9 +94,9 @@ describe('season-state utilities', () => {
 
   describe('saveSeason', () => {
     it('should save valid season to localStorage', () => {
-      saveSeason('career')
+      saveSeason('last')
 
-      expect(mockLocalStorage.setItem).toHaveBeenCalledWith(SEASON_STORAGE_KEY, 'career')
+      expect(mockLocalStorage.setItem).toHaveBeenCalledWith(SEASON_STORAGE_KEY, 'last')
     })
 
     it('should save default season when invalid season provided', () => {
@@ -165,7 +160,7 @@ describe('season-state utilities', () => {
 
   describe('integration scenarios', () => {
     it('should work through complete workflow for all valid values', () => {
-      const validSeasons: SeasonType[] = ['current', 'last', 'career']
+      const validSeasons: SeasonType[] = ['current', 'last']
       const validPeriods: TimePeriodType[] = ['full', 'lastmonth', 'lastweek']
 
       validSeasons.forEach(season => {
@@ -179,9 +174,9 @@ describe('season-state utilities', () => {
       })
 
       // Test complete cycle: save -> retrieve -> clear -> default
-      saveSeason('career')
+      saveSeason('last')
       saveTimePeriod('lastweek')
-      expect(getStoredSeason()).toBe('career')
+      expect(getStoredSeason()).toBe('last')
       expect(getStoredTimePeriod()).toBe('lastweek')
 
       clearStoredSeasonState()

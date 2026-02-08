@@ -27,6 +27,14 @@ jest.mock('@/hooks/use-yahoo-fantasy', () => ({
   useYahooFantasy: jest.fn(),
 }))
 
+jest.mock('@/lib/season-state', () => ({
+  getStoredSeason: jest.fn(() => 'current'),
+  saveSeason: jest.fn(),
+  getStoredTimePeriod: jest.fn(() => 'full'),
+  saveTimePeriod: jest.fn(),
+  deriveStatType: jest.fn(() => 'season'),
+}))
+
 const mockPush = jest.fn()
 jest.mock('next/navigation', () => ({
   useRouter: jest.fn(() => ({ push: mockPush, replace: jest.fn() })),
