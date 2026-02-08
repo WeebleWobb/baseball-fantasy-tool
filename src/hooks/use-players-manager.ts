@@ -79,7 +79,8 @@ export function usePlayersManager() {
 
   const { data: fullDataset, isLoading: isLoadingFullDataset } = usePlayersComprehensive({
     playerType: playerTypeForApi,
-    fetchAll: true
+    fetchAll: true,
+    seasonYear: season === 'last' ? 'last' : 'current'
   });
 
   const { filteredPlayers, totalFilteredCount, totalMatchingPlayers, isLoading } = React.useMemo(() => 
