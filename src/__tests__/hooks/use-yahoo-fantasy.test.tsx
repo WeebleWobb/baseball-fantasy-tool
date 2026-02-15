@@ -307,7 +307,9 @@ describe('useYahooFantasy', () => {
 
       expect(mockApiInstance.getMLBPlayersComprehensive).toHaveBeenCalledWith({
         playerType: 'ALL_BATTERS',
-        maxPlayers: 500 // Fast connection default
+        maxPlayers: 500, // Fast connection default
+        statType: 'season',
+        seasonYear: 'current'
       })
       expect(playersResult.result.current.data).toEqual(mockPlayersSimple)
     })
@@ -355,12 +357,16 @@ describe('useYahooFantasy', () => {
       // Should call API with different playerType parameters
       expect(mockApiInstance.getMLBPlayersComprehensive).toHaveBeenCalledWith({
         playerType: 'ALL_BATTERS',
-        maxPlayers: 500
+        maxPlayers: 500,
+        statType: 'season',
+        seasonYear: 'current'
       })
-      
+
       expect(mockApiInstance.getMLBPlayersComprehensive).toHaveBeenCalledWith({
         playerType: 'ALL_PITCHERS',
-        maxPlayers: 500
+        maxPlayers: 500,
+        statType: 'season',
+        seasonYear: 'current'
       })
 
       // Should have been called twice (separate cache entries)
@@ -434,7 +440,9 @@ describe('useYahooFantasy', () => {
       // Should still be enabled but with reduced maxPlayers limit
       expect(mockApiInstance.getMLBPlayersComprehensive).toHaveBeenCalledWith({
         playerType: 'ALL_BATTERS',
-        maxPlayers: 200 // Reduced limit for slow connections
+        maxPlayers: 200, // Reduced limit for slow connections
+        statType: 'season',
+        seasonYear: 'current'
       })
     })
 
@@ -456,7 +464,9 @@ describe('useYahooFantasy', () => {
       // Should still be enabled but with reduced maxPlayers limit
       expect(mockApiInstance.getMLBPlayersComprehensive).toHaveBeenCalledWith({
         playerType: 'ALL_BATTERS',
-        maxPlayers: 200 // Reduced limit for slow connections
+        maxPlayers: 200, // Reduced limit for slow connections
+        statType: 'season',
+        seasonYear: 'current'
       })
     })
 
@@ -482,7 +492,9 @@ describe('useYahooFantasy', () => {
       // Should use fast connection defaults
       expect(mockApiInstance.getMLBPlayersComprehensive).toHaveBeenCalledWith({
         playerType: 'ALL_BATTERS',
-        maxPlayers: 500
+        maxPlayers: 500,
+        statType: 'season',
+        seasonYear: 'current'
       })
     })
   })

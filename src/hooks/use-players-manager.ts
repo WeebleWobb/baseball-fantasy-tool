@@ -2,7 +2,14 @@ import React from "react";
 import { useYahooFantasy } from "@/hooks/use-yahoo-fantasy";
 import { getColumns } from "@/components/players-table/columns";
 import { getStoredFilter, saveFilter } from "@/lib/filter-state";
-import type { PlayerFilterType } from "@/types/hooks";
+import {
+  getStoredSeason,
+  saveSeason,
+  getStoredTimePeriod,
+  saveTimePeriod,
+  deriveStatType
+} from "@/lib/season-state";
+import type { PlayerFilterType, SeasonType, TimePeriodType } from "@/types/hooks";
 import { playerMatchesFilter } from "@/lib/utils";
 import type { ProcessedPlayersData } from "@/types/player-data";
 
@@ -39,7 +46,7 @@ function processPlayersData(
   // Apply search filtering across the entire dataset
   const searchFiltered = positionFiltered.filter((player) => {
     if (!searchTerm.trim()) return true; // No search term, show all
-    
+
     const searchLower = searchTerm.toLowerCase();
     return (
       player.name.full?.toLowerCase().includes(searchLower) ||
@@ -67,22 +74,29 @@ function processPlayersData(
 
 export function usePlayersManager() {
   const { usePlayersComprehensive } = useYahooFantasy();
-  
+
   const [renderedCount, setRenderedCount] = React.useState(25);
   const [searchTerm, setSearchTerm] = React.useState("");
   const [activeFilter, setActiveFilter] = React.useState<PlayerFilterType>(() => {
     return getStoredFilter();
   });
-  
+  const [season, setSeason] = React.useState<SeasonType>(() => getStoredSeason());
+  const [timePeriod, setTimePeriod] = React.useState<TimePeriodType>(() => getStoredTimePeriod());
+
   const isPitcherFilter = ["ALL_PITCHERS", "SP", "RP"].includes(activeFilter);
   const playerTypeForApi: PlayerFilterType = isPitcherFilter ? "ALL_PITCHERS" : "ALL_BATTERS";
 
+  // Derive Yahoo API stat type from UI state
+  const statType = React.useMemo(() => deriveStatType(season, timePeriod), [season, timePeriod]);
+
   const { data: fullDataset, isLoading: isLoadingFullDataset } = usePlayersComprehensive({
     playerType: playerTypeForApi,
-    fetchAll: true
+    fetchAll: true,
+    statType,
+    seasonYear: season === 'last' ? 'last' : 'current'
   });
 
-  const { filteredPlayers, totalFilteredCount, totalMatchingPlayers, isLoading } = React.useMemo(() => 
+  const { filteredPlayers, totalFilteredCount, totalMatchingPlayers, isLoading } = React.useMemo(() =>
     processPlayersData(fullDataset, activeFilter, searchTerm, renderedCount, isLoadingFullDataset),
     [fullDataset, activeFilter, searchTerm, renderedCount, isLoadingFullDataset]
   );
@@ -92,17 +106,17 @@ export function usePlayersManager() {
   }, [activeFilter]);
 
   const loadMorePlayers = React.useCallback(() => {
-    setRenderedCount(prevCount => 
+    setRenderedCount(prevCount =>
       Math.min(prevCount + 25, totalMatchingPlayers)
     );
   }, [totalMatchingPlayers]);
 
   const hasMore = renderedCount < totalMatchingPlayers;
 
-  // Reset renderedCount when filter or search changes
+  // Reset renderedCount when filter, search, or season changes
   React.useEffect(() => {
     setRenderedCount(25);
-  }, [activeFilter, searchTerm]);
+  }, [activeFilter, searchTerm, statType]);
 
   const handleFilterChange = React.useCallback((newFilter: PlayerFilterType) => {
     setActiveFilter(newFilter);
@@ -116,6 +130,21 @@ export function usePlayersManager() {
     setSearchTerm(newSearchTerm);
   }, []);
 
+  const handleSeasonChange = React.useCallback((newSeason: SeasonType) => {
+    setSeason(newSeason);
+    saveSeason(newSeason);
+    // Reset time period to 'full' when changing away from current season
+    if (newSeason !== 'current') {
+      setTimePeriod('full');
+      saveTimePeriod('full');
+    }
+  }, []);
+
+  const handleTimePeriodChange = React.useCallback((newPeriod: TimePeriodType) => {
+    setTimePeriod(newPeriod);
+    saveTimePeriod(newPeriod);
+  }, []);
+
   return {
     filteredPlayers,
     columns,
@@ -125,8 +154,12 @@ export function usePlayersManager() {
     hasMore,
     activeFilter,
     searchTerm,
+    season,
+    timePeriod,
     loadMorePlayers,
     onFilterChange: handleFilterChange,
     onSearchChange: handleSearchChange,
+    onSeasonChange: handleSeasonChange,
+    onTimePeriodChange: handleTimePeriodChange,
   };
-} 
+}

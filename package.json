@@ -48,6 +48,7 @@
     "@eslint/eslintrc": "^3",
     "@eslint/js": "^9.39.2",
     "@next/eslint-plugin-next": "^16.1.6",
+    "@next/swc-darwin-arm64": "^16.1.6",
     "@tailwindcss/postcss": "^4",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.3.0",

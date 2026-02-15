@@ -4,10 +4,17 @@ import { ReactNode } from 'react'
 import { usePlayersManager } from '@/hooks/use-players-manager'
 import { useYahooFantasy } from '@/hooks/use-yahoo-fantasy'
 import { getStoredFilter, saveFilter } from '@/lib/filter-state'
+import {
+  getStoredSeason,
+  saveSeason,
+  getStoredTimePeriod,
+  saveTimePeriod
+} from '@/lib/season-state'
 
 // Mock dependencies
 jest.mock('@/hooks/use-yahoo-fantasy')
 jest.mock('@/lib/filter-state')
+jest.mock('@/lib/season-state')
 jest.mock('@/components/players-table/columns', () => ({
   getColumns: jest.fn(() => [{ id: 'name', header: 'Name' }])
 }))
@@ -15,6 +22,10 @@ jest.mock('@/components/players-table/columns', () => ({
 const mockUseYahooFantasy = useYahooFantasy as jest.MockedFunction<typeof useYahooFantasy>
 const mockGetStoredFilter = getStoredFilter as jest.MockedFunction<typeof getStoredFilter>
 const mockSaveFilter = saveFilter as jest.MockedFunction<typeof saveFilter>
+const mockGetStoredSeason = getStoredSeason as jest.MockedFunction<typeof getStoredSeason>
+const mockSaveSeason = saveSeason as jest.MockedFunction<typeof saveSeason>
+const mockGetStoredTimePeriod = getStoredTimePeriod as jest.MockedFunction<typeof getStoredTimePeriod>
+const mockSaveTimePeriod = saveTimePeriod as jest.MockedFunction<typeof saveTimePeriod>
 
 describe('usePlayersManager', () => {
   let queryClient: QueryClient
@@ -39,7 +50,9 @@ describe('usePlayersManager', () => {
   beforeEach(() => {
     jest.clearAllMocks()
     mockGetStoredFilter.mockReturnValue('ALL_BATTERS')
-    
+    mockGetStoredSeason.mockReturnValue('current')
+    mockGetStoredTimePeriod.mockReturnValue('full')
+
     // Simple default mock
     const mockUsePlayersComprehensive = jest.fn().mockReturnValue({
       data: [
@@ -66,9 +79,11 @@ describe('usePlayersManager', () => {
 
   it('should initialize with default states', () => {
     const { result } = setup()
-    
+
     expect(result.current.searchTerm).toBe('')
     expect(result.current.activeFilter).toBe('ALL_BATTERS')
+    expect(result.current.season).toBe('current')
+    expect(result.current.timePeriod).toBe('full')
     expect(result.current.hasMore).toBe(false) // Single player, rendered count is 25
     expect(result.current.totalMatchingPlayers).toBe(1)
   })
@@ -294,16 +309,87 @@ describe('usePlayersManager', () => {
 
     it('should handle empty search results while preserving rankings', () => {
       const { result } = setup()
-      
+
       // Search for non-existent player
       act(() => {
         result.current.onSearchChange('NonExistentPlayer')
       })
-      
+
       const results = result.current.filteredPlayers
-      
+
       expect(results).toHaveLength(0)
       expect(result.current.totalMatchingPlayers).toBe(0)
+    })
+  })
+
+  describe('Season and Time Period Selection', () => {
+    it('should initialize with stored season and time period', () => {
+      mockGetStoredSeason.mockReturnValue('last')
+      mockGetStoredTimePeriod.mockReturnValue('lastmonth')
+
+      const { result } = setup()
+
+      expect(result.current.season).toBe('last')
+      expect(result.current.timePeriod).toBe('lastmonth')
+    })
+
+    it('should handle season changes and save to localStorage', async () => {
+      const { result } = setup()
+
+      await act(async () => {
+        result.current.onSeasonChange('last')
+      })
+
+      await waitFor(() => {
+        expect(result.current.season).toBe('last')
+        expect(mockSaveSeason).toHaveBeenCalledWith('last')
+      })
+    })
+
+    it('should reset time period to full when changing away from current season', async () => {
+      mockGetStoredTimePeriod.mockReturnValue('lastmonth')
+
+      const { result } = setup()
+
+      await act(async () => {
+        result.current.onSeasonChange('last')
+      })
+
+      await waitFor(() => {
+        expect(result.current.season).toBe('last')
+        expect(result.current.timePeriod).toBe('full')
+        expect(mockSaveTimePeriod).toHaveBeenCalledWith('full')
+      })
+    })
+
+    it('should not reset time period when changing to current season', async () => {
+      mockGetStoredSeason.mockReturnValue('last')
+      mockGetStoredTimePeriod.mockReturnValue('full')
+
+      const { result } = setup()
+
+      await act(async () => {
+        result.current.onSeasonChange('current')
+      })
+
+      await waitFor(() => {
+        expect(result.current.season).toBe('current')
+        // saveTimePeriod should not be called when switching to current
+        expect(mockSaveTimePeriod).not.toHaveBeenCalled()
+      })
+    })
+
+    it('should handle time period changes and save to localStorage', async () => {
+      const { result } = setup()
+
+      await act(async () => {
+        result.current.onTimePeriodChange('lastweek')
+      })
+
+      await waitFor(() => {
+        expect(result.current.timePeriod).toBe('lastweek')
+        expect(mockSaveTimePeriod).toHaveBeenCalledWith('lastweek')
+      })
     })
   })
 }) 

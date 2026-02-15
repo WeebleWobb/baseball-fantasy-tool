@@ -323,23 +323,24 @@ describe('Filter Integration Tests', () => {
 
       setupFilterWorkflow('ALL_BATTERS', [], { isLoading: true })
 
-      // Should show loading skeleton instead of filter buttons
-      expect(screen.queryByText('All Batters')).not.toBeInTheDocument()
-      
-      // Should show loading animation
+      // Filter buttons should remain visible during loading but be disabled
+      expect(screen.getByText('All Batters')).toBeInTheDocument()
+      expect(screen.getByText('All Pitchers')).toBeInTheDocument()
+
+      // Table area should show loading skeleton
       const loadingElements = screen.getAllByText('')
       expect(loadingElements.length).toBeGreaterThan(0)
     })
 
     it('should disable filter buttons during loading', () => {
-      setupFilterWorkflow('ALL_BATTERS', mockPlayersWithRank, { 
-        disabled: true 
+      setupFilterWorkflow('ALL_BATTERS', mockPlayersWithRank, {
+        isLoading: true
       })
 
-      // All filter buttons should be disabled
+      // Filter buttons should be visible but disabled during loading
       const batterButton = screen.getByText('All Batters')
       const pitcherButton = screen.getByText('All Pitchers')
-      
+
       expect(batterButton).toBeDisabled()
       expect(pitcherButton).toBeDisabled()
     })
