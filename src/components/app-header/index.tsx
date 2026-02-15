@@ -37,7 +37,7 @@ export function AppHeader({ userProfile }: AppHeaderProps) {
       </div>
 
       {/* Right side: Navigation */}
-      <nav className="flex items-center gap-0.5">
+      <nav className="flex items-center gap-1">
         <NavButton
           icon={<Icon iconNode={baseball} className="h-4 w-4" />}
           label="Players"
@@ -47,7 +47,8 @@ export function AppHeader({ userProfile }: AppHeaderProps) {
         <NavButton
           icon={<ListTodo className="h-4 w-4" />}
           label="Draft List"
-          disabled
+          onClick={() => router.push('/draft-list')}
+          isActive={pathname === '/draft-list'}
         />
         <Separator orientation="vertical" className="h-6 mx-0.5" />
         <NavButton
