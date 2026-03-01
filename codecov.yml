@@ -7,7 +7,7 @@ coverage:
     patch:
       default:
         target: 85%
-        threshold: 5%
+        only_pulls: true
 
 comment:
   layout: "reach,diff,flags,tree"
