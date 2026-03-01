@@ -16,12 +16,12 @@ function getSeasonTitle(season: SeasonType, timePeriod: TimePeriodType): string 
 
   switch (season) {
     case 'last':
-      return `MLB Players - ${lastYear} Season`;
+      return `${lastYear} Season`;
     case 'current':
     default:
-      if (timePeriod === 'lastmonth') return `MLB Players - ${currentYear} Season (Last 30 Days)`;
-      if (timePeriod === 'lastweek') return `MLB Players - ${currentYear} Season (Last 7 Days)`;
-      return `MLB Players - ${currentYear} Season`;
+      if (timePeriod === 'lastmonth') return `${currentYear} Season (Last 30 Days)`;
+      if (timePeriod === 'lastweek') return `${currentYear} Season (Last 7 Days)`;
+      return `${currentYear} Season`;
   }
 }
 

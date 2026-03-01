@@ -1,4 +1,5 @@
 export type PlayerFilterType =
+  | 'ALL_PLAYERS'
   | 'ALL_BATTERS'
   | 'ALL_PITCHERS'
   | 'C'

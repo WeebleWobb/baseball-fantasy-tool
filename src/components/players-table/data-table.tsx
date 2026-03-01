@@ -140,6 +140,10 @@ export function DataTable<TData, TValue>({
       </div>
 
       {/* Table - header always visible, body shows skeleton when loading */}
+      <div
+        data-slot="table-container"
+        className="max-h-[calc(100vh-324px)] overflow-auto overscroll-none"
+      >
       <Table>
         <TableHeader>
           {table.getHeaderGroups().map((headerGroup) => (
@@ -161,6 +165,7 @@ export function DataTable<TData, TValue>({
           {renderTableRows()}
         </TableBody>
       </Table>
+      </div>
 
       {/* Infinite Scroll Status and Loading - only show when not in initial loading */}
       {!isLoading && (

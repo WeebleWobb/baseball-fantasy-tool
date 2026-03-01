@@ -135,6 +135,45 @@ export const mockPitchersWithRank: PlayerWithRank[] = mockPitchers.map((player, 
   globalRank: index + 1
 }))
 
+// Combined batters + pitchers for draft list builder tests
+export const mockMixedPlayersWithRank: PlayerWithRank[] = [
+  ...mockPlayersWithRank.slice(0, 2), // Trout, Betts
+  mockPitchersWithRank[0], // deGrom
+]
+
+// StoredDraftPlayer fixtures for draft list tests
+export const mockStoredDraftPlayers = {
+  trout: {
+    player_key: '431.p.8967',
+    name: 'Mike Trout',
+    team: 'LAA',
+    position: 'OF',
+    originalRank: 1,
+  },
+  betts: {
+    player_key: '431.p.9988',
+    name: 'Mookie Betts',
+    team: 'LAD',
+    position: '2B,OF',
+    originalRank: 2,
+  },
+  degrom: {
+    player_key: '431.p.7163',
+    name: 'Jacob deGrom',
+    team: 'TEX',
+    position: 'SP',
+    originalRank: 3,
+  },
+}
+
+export const mockDraftListSingle = [mockStoredDraftPlayers.trout]
+export const mockDraftListMultiple = [mockStoredDraftPlayers.trout, mockStoredDraftPlayers.betts]
+export const mockDraftListWithPitcher = [
+  mockStoredDraftPlayers.trout,
+  mockStoredDraftPlayers.betts,
+  mockStoredDraftPlayers.degrom,
+]
+
 // Game info for players response
 const mockGameInfo = {
   game_key: '431',

@@ -75,6 +75,30 @@ export function useInfiniteScroll({
     previousDataLengthRef.current = dataLength
   }, [dataLength])
 
+  // Check if we need to load more when content doesn't fill the container
+  // Used when toggling drafted players in Draft List Builder
+  useEffect(() => {
+    if (!hasMore || loadingRef.current) return
+
+    const checkIfNeedsMore = () => {
+      const tableContainer = containerRef.current || getTableContainer()
+      if (!tableContainer) return
+
+      containerRef.current ??= tableContainer
+
+      // If content doesn't fill the container, load more
+      if (tableContainer.scrollHeight <= tableContainer.clientHeight) {
+        loadingRef.current = true
+        setLoadingMore(true)
+        onLoadMoreRef.current()
+      }
+    }
+
+    // Small delay to ensure DOM has rendered
+    const timeoutId = setTimeout(checkIfNeedsMore, 50)
+    return () => clearTimeout(timeoutId)
+  }, [hasMore, dataLength])
+
   // Set up scroll event listeners with throttling
   useEffect(() => {
     let rafId: number | null = null

@@ -3,11 +3,14 @@
 import * as React from "react"
 import { cn } from "@/lib/utils"
 
-function Table({ ...props }: React.ComponentProps<"table">) {
+function Table({ className, ...props }: React.ComponentProps<"table">) {
   return (
     <div
-      data-slot="table-container"
-      className="border rounded-md w-ful max-h-[calc(100vh-324px)] overflow-auto"
+      data-slot="table-wrapper"
+      className={cn(
+        "border rounded-md w-full",
+        className
+      )}
     >
       <table
         data-slot="table"
@@ -22,7 +25,7 @@ function TableHeader({ ...props }: React.ComponentProps<"thead">) {
   return (
     <thead
       data-slot="table-header"
-              className="bg-muted shadow-[inset_0_-1px_0_0_oklch(0.929_0.013_255.508)] sticky top-0 z-10"
+      className="bg-muted shadow-[inset_0_-1px_0_0_oklch(0.929_0.013_255.508)] sticky top-0 z-10"
       {...props}
     />
   )
@@ -37,11 +40,14 @@ function TableBody({...props }: React.ComponentProps<"tbody">) {
   )
 }
 
-function TableRow({ ...props }: React.ComponentProps<"tr">) {
+function TableRow({ className, ...props }: React.ComponentProps<"tr">) {
   return (
     <tr
       data-slot="table-row"
-      className="border-b last:border-b-0 hover:bg-muted/50 data-[state=selected]:bg-muted transition-colors"
+      className={cn(
+        "border-b last:border-b-0 hover:bg-muted/50 data-[state=selected]:bg-muted transition-colors",
+        className
+      )}
       {...props}
     />
   )

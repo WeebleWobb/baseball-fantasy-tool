@@ -72,7 +72,13 @@ function processPlayersData(
   };
 }
 
-export function usePlayersManager() {
+interface UsePlayersManagerOptions {
+  /** Force a specific season for API calls, ignoring stored/user selection */
+  forceSeason?: SeasonType;
+}
+
+export function usePlayersManager(options: UsePlayersManagerOptions = {}) {
+  const { forceSeason } = options;
   const { usePlayersComprehensive } = useYahooFantasy();
 
   const [renderedCount, setRenderedCount] = React.useState(25);
@@ -83,17 +89,20 @@ export function usePlayersManager() {
   const [season, setSeason] = React.useState<SeasonType>(() => getStoredSeason());
   const [timePeriod, setTimePeriod] = React.useState<TimePeriodType>(() => getStoredTimePeriod());
 
+  // Use forced season if provided, otherwise use user-selected season
+  const effectiveSeason = forceSeason ?? season;
+
   const isPitcherFilter = ["ALL_PITCHERS", "SP", "RP"].includes(activeFilter);
   const playerTypeForApi: PlayerFilterType = isPitcherFilter ? "ALL_PITCHERS" : "ALL_BATTERS";
 
-  // Derive Yahoo API stat type from UI state
-  const statType = React.useMemo(() => deriveStatType(season, timePeriod), [season, timePeriod]);
+  // Derive Yahoo API stat type from UI state (use effectiveSeason for API calls)
+  const statType = React.useMemo(() => deriveStatType(effectiveSeason, timePeriod), [effectiveSeason, timePeriod]);
 
   const { data: fullDataset, isLoading: isLoadingFullDataset } = usePlayersComprehensive({
     playerType: playerTypeForApi,
     fetchAll: true,
     statType,
-    seasonYear: season === 'last' ? 'last' : 'current'
+    seasonYear: effectiveSeason === 'last' ? 'last' : 'current'
   });
 
   const { filteredPlayers, totalFilteredCount, totalMatchingPlayers, isLoading } = React.useMemo(() =>

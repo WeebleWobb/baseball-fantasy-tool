@@ -58,6 +58,7 @@ export const PITCHING_STAT_LABELS = {
 
 // Filter Types - matches the PlayerFilterType in types/hooks.ts
 export const FILTER_TYPES = {
+  ALL_PLAYERS: 'ALL_PLAYERS',
   ALL_BATTERS: 'ALL_BATTERS',
   ALL_PITCHERS: 'ALL_PITCHERS',
   C: 'C',
@@ -72,7 +73,8 @@ export const FILTER_TYPES = {
 } as const;
 
 // Filter Display Names
-export const FILTER_LABELS = {
+export const FILTER_LABELS: Record<string, string> = {
+  [FILTER_TYPES.ALL_PLAYERS]: 'All Players',
   [FILTER_TYPES.ALL_BATTERS]: 'All Batters',
   [FILTER_TYPES.ALL_PITCHERS]: 'All Pitchers',
   [FILTER_TYPES.C]: 'C',
@@ -84,7 +86,7 @@ export const FILTER_LABELS = {
   [FILTER_TYPES.UTIL]: 'Util',
   [FILTER_TYPES.STARTING_PITCHER]: 'SP',
   [FILTER_TYPES.RELIEF_PITCHER]: 'RP',
-} as const;
+};
 
 // Filter Button Configuration - Grouped by Player Type
 export const BATTER_FILTER_BUTTONS = [

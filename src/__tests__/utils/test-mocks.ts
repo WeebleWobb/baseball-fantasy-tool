@@ -1,14 +1,28 @@
 import { useSession, signIn, signOut } from 'next-auth/react'
 import { useYahooFantasy } from '@/hooks/use-yahoo-fantasy'
+import { useDraftList } from '@/hooks/use-draft-list'
+import { usePlayersManager } from '@/hooks/use-players-manager'
+import { useInfiniteScroll } from '@/hooks/use-infinite-scroll'
 import { mockUserInfo, mockPlayersWithRank } from './test-fixtures'
+import type { StoredDraftPlayer } from '@/types/draft-list'
+import type { PlayerWithRank } from '@/types/yahoo-fantasy'
 
 // =============================================================================
-// MOCK DECLARATIONS - Typed mock references
+// JEST MOCK DECLARATIONS - Call these in test files or jest.setup
+// =============================================================================
+// Note: jest.mock() calls must be in the test file itself, not here.
+// Import this file after your jest.mock() calls to get typed references.
+
+// =============================================================================
+// TYPED MOCK REFERENCES
 // =============================================================================
 export const mockUseSession = useSession as jest.MockedFunction<typeof useSession>
 export const mockUseYahooFantasy = useYahooFantasy as jest.MockedFunction<typeof useYahooFantasy>
 export const mockSignIn = signIn as jest.MockedFunction<typeof signIn>
 export const mockSignOut = signOut as jest.MockedFunction<typeof signOut>
+export const mockUseDraftList = useDraftList as jest.MockedFunction<typeof useDraftList>
+export const mockUsePlayersManager = usePlayersManager as jest.MockedFunction<typeof usePlayersManager>
+export const mockUseInfiniteScroll = useInfiniteScroll as jest.MockedFunction<typeof useInfiniteScroll>
 
 // =============================================================================
 // MOCK IMPLEMENTATIONS - Default mock behaviors
@@ -140,4 +154,85 @@ export const resetAllMocks = () => {
  */
 export const clearAllMocks = () => {
   jest.clearAllMocks()
+}
+
+// =============================================================================
+// DRAFT LIST BUILDER MOCKS - Combined setup functions
+// =============================================================================
+
+/**
+ * Setup useDraftList mock with sensible defaults
+ * Returns the mock functions for assertions
+ */
+export const setupDraftListMock = (
+  draftList: StoredDraftPlayer[] = [],
+  overrides: Partial<ReturnType<typeof useDraftList>> = {}
+) => {
+  const draftedKeys = new Set(draftList.map(p => p.player_key))
+  const mockFns = {
+    addPlayer: jest.fn(),
+    removePlayer: jest.fn(),
+    movePlayer: jest.fn(),
+    reorderPlayer: jest.fn(),
+    clearAll: jest.fn(),
+  }
+
+  mockUseDraftList.mockReturnValue({
+    draftList,
+    draftedKeys,
+    draftListCount: draftList.length,
+    isInitialized: true,
+    isPlayerDrafted: (key: string) => draftedKeys.has(key),
+    ...mockFns,
+    ...overrides,
+  })
+
+  return mockFns
+}
+
+/**
+ * Setup usePlayersManager mock with sensible defaults
+ * Returns the mock functions for assertions
+ */
+export const setupPlayersManagerMock = (
+  players: PlayerWithRank[] = [],
+  overrides: Partial<ReturnType<typeof usePlayersManager>> = {}
+) => {
+  const mockFns = {
+    loadMorePlayers: jest.fn(),
+    onFilterChange: jest.fn(),
+    onSearchChange: jest.fn(),
+    onSeasonChange: jest.fn(),
+    onTimePeriodChange: jest.fn(),
+  }
+
+  mockUsePlayersManager.mockReturnValue({
+    filteredPlayers: players,
+    columns: [],
+    isLoading: false,
+    totalFilteredCount: players.length,
+    totalMatchingPlayers: players.length,
+    hasMore: false,
+    activeFilter: 'ALL_PLAYERS' as const,
+    searchTerm: '',
+    season: 'current' as const,
+    timePeriod: 'full' as const,
+    ...mockFns,
+    ...overrides,
+  })
+
+  return mockFns
+}
+
+/**
+ * Setup useInfiniteScroll mock with sensible defaults
+ */
+export const setupInfiniteScrollMock = (
+  overrides: Partial<ReturnType<typeof useInfiniteScroll>> = {}
+) => {
+  mockUseInfiniteScroll.mockReturnValue({
+    isNearBottom: false,
+    loadingMore: false,
+    ...overrides,
+  })
 } 
