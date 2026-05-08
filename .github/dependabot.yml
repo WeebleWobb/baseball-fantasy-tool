@@ -6,8 +6,17 @@ updates:
       interval: "weekly"
       day: "monday"
     groups:
+      eslint:
+        patterns:
+          - "eslint"
+          - "eslint-*"
+          - "@eslint/*"
       dev-dependencies:
         dependency-type: "development"
+        exclude-patterns:
+          - "eslint"
+          - "eslint-*"
+          - "@eslint/*"
         update-types:
           - "minor"
           - "patch"
