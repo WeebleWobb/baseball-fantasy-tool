@@ -26,10 +26,18 @@ export function splitName(fullName: string): { firstName: string; lastName: stri
 }
 
 /**
- * Normalize a name for comparison (lowercase, remove suffixes like Jr., III, etc.)
+ * Strip diacritical marks (accents) from a string.
+ * "José Ramírez" → "Jose Ramirez"
+ */
+export function stripDiacritics(str: string): string {
+  return str.normalize('NFD').replaceAll(/[̀-ͯ]/g, '');
+}
+
+/**
+ * Normalize a name for comparison (lowercase, strip accents, remove suffixes like Jr., III, etc.)
  */
 export function normalizeName(name: string): string {
-  return cleanName(name)
+  return stripDiacritics(cleanName(name))
     .toLowerCase()
     .replace(/\s+(jr\.?|sr\.?|i{1,3}|iv|v)$/i, '')
     .trim();
