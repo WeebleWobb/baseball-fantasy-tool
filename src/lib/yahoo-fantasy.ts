@@ -170,7 +170,7 @@ export class YahooFantasyAPI {
   }
 
   async getMLBPlayersComprehensive(options: { playerType?: PlayerFilterType; maxPlayers?: number; statType?: StatType; seasonYear?: 'current' | 'last' } = {}): Promise<YahooPlayerStats[]> {
-    const { playerType = 'ALL_BATTERS', maxPlayers = 500, statType = 'season', seasonYear = 'current' } = options;
+    const { playerType = 'ALL_BATTERS', maxPlayers = Infinity, statType = 'season', seasonYear = 'current' } = options;
     const batchSize = 25;
     const maxRetries = 3;
     const retryDelay = 1000;

@@ -7,6 +7,8 @@ import {
   setupDraftListMock,
   setupPlayersManagerMock,
   setupInfiniteScrollMock,
+  mockUseYahooFantasy,
+  createMockYahooFantasyHook,
 } from '@/__tests__/utils/test-mocks';
 import {
   mockMixedPlayersWithRank,
@@ -22,6 +24,7 @@ import type { StoredDraftPlayer } from '@/types/draft-list';
 jest.mock('@/hooks/use-draft-list');
 jest.mock('@/hooks/use-players-manager');
 jest.mock('@/hooks/use-infinite-scroll');
+jest.mock('@/hooks/use-yahoo-fantasy');
 
 // Mock dnd-kit (uses browser APIs not available in jsdom)
 jest.mock('@dnd-kit/core', () => ({
@@ -65,16 +68,39 @@ describe('DraftListBuilder', () => {
     draftList?: StoredDraftPlayer[];
     players?: PlayerWithRank[];
     playersManagerOverrides?: Partial<ReturnType<typeof usePlayersManager>>;
+    importSheetOpen?: boolean;
   } = {}) => {
-    const { draftList = [], players = mockMixedPlayersWithRank, playersManagerOverrides = {} } = options;
+    const {
+      draftList = [],
+      players = mockMixedPlayersWithRank,
+      playersManagerOverrides = {},
+      importSheetOpen = false,
+    } = options;
 
     draftListMocks = setupDraftListMock(draftList);
     playersManagerMocks = setupPlayersManagerMock(players, playersManagerOverrides);
     setupInfiniteScrollMock();
 
-    return render(<DraftListBuilder />, {
-      wrapper: ({ children }) => <TooltipProvider>{children}</TooltipProvider>,
-    });
+    // Setup useYahooFantasy mock for import matching
+    mockUseYahooFantasy.mockReturnValue(createMockYahooFantasyHook({
+      usePlayersComprehensive: jest.fn().mockReturnValue({
+        data: players,
+        isLoading: false,
+        error: null,
+      }),
+    }));
+
+    const onImportSheetOpenChange = jest.fn();
+
+    return render(
+      <DraftListBuilder
+        importSheetOpen={importSheetOpen}
+        onImportSheetOpenChange={onImportSheetOpenChange}
+      />,
+      {
+        wrapper: ({ children }) => <TooltipProvider>{children}</TooltipProvider>,
+      }
+    );
   };
 
   beforeEach(() => {

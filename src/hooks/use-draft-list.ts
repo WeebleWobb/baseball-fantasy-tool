@@ -93,6 +93,43 @@ export function useDraftList() {
     saveDraftList([]);
   }, []);
 
+  // Import players from CSV
+  const importPlayers = useCallback(
+    (
+      players: StoredDraftPlayer[],
+      mode: 'replace' | 'append'
+    ): { success: boolean; error?: string } => {
+      try {
+        setDraftList((prev) => {
+          let updated: StoredDraftPlayer[];
+
+          if (mode === 'replace') {
+            updated = players;
+          } else {
+            // Append: filter out duplicates
+            const existingKeys = new Set(prev.map((p) => p.player_key));
+            const newPlayers = players.filter((p) => !existingKeys.has(p.player_key));
+            updated = [...prev, ...newPlayers];
+          }
+
+          saveDraftList(updated);
+          return updated;
+        });
+        return { success: true };
+      } catch (error) {
+        // Handle localStorage quota exceeded
+        if (error instanceof DOMException && error.name === 'QuotaExceededError') {
+          return {
+            success: false,
+            error: 'Unable to save - storage full. Try removing some players first.',
+          };
+        }
+        return { success: false, error: 'Failed to import players' };
+      }
+    },
+    []
+  );
+
   return {
     draftList,
     draftedKeys,
@@ -104,5 +141,6 @@ export function useDraftList() {
     reorderPlayer,
     isPlayerDrafted,
     clearAll,
+    importPlayers,
   };
 }

@@ -14,6 +14,7 @@ import {
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import type { StoredDraftPlayer } from '@/types/draft-list';
+import { cleanName, splitName } from '@/lib/name-utils';
 
 type ExportLayout = 'multi-first-last' | 'multi-last-first' | 'single';
 
@@ -39,22 +40,6 @@ const EXPORT_OPTIONS: { value: ExportLayout; label: string; description: string 
     description: 'First name Last name, Team',
   },
 ];
-
-function cleanName(name: string): string {
-  // Remove parenthetical suffixes like "(Batter)" or "(Pitcher)"
-  return name.replace(/\s*\([^)]*\)\s*$/, '').trim();
-}
-
-function splitName(fullName: string): { firstName: string; lastName: string } {
-  const cleaned = cleanName(fullName);
-  const parts = cleaned.split(/\s+/);
-  if (parts.length === 1) {
-    return { firstName: parts[0], lastName: '' };
-  }
-  const lastName = parts.pop() || '';
-  const firstName = parts.join(' ');
-  return { firstName, lastName };
-}
 
 function generateCSV(draftList: StoredDraftPlayer[], layout: ExportLayout): string {
   const rows: string[][] = [];

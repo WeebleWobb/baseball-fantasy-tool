@@ -175,6 +175,7 @@ export const setupDraftListMock = (
     movePlayer: jest.fn(),
     reorderPlayer: jest.fn(),
     clearAll: jest.fn(),
+    importPlayers: jest.fn(() => ({ success: true })),
   }
 
   mockUseDraftList.mockReturnValue({

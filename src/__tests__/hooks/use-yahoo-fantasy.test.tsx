@@ -307,7 +307,6 @@ describe('useYahooFantasy', () => {
 
       expect(mockApiInstance.getMLBPlayersComprehensive).toHaveBeenCalledWith({
         playerType: 'ALL_BATTERS',
-        maxPlayers: 500, // Fast connection default
         statType: 'season',
         seasonYear: 'current'
       })
@@ -357,14 +356,12 @@ describe('useYahooFantasy', () => {
       // Should call API with different playerType parameters
       expect(mockApiInstance.getMLBPlayersComprehensive).toHaveBeenCalledWith({
         playerType: 'ALL_BATTERS',
-        maxPlayers: 500,
         statType: 'season',
         seasonYear: 'current'
       })
 
       expect(mockApiInstance.getMLBPlayersComprehensive).toHaveBeenCalledWith({
         playerType: 'ALL_PITCHERS',
-        maxPlayers: 500,
         statType: 'season',
         seasonYear: 'current'
       })
@@ -394,108 +391,4 @@ describe('useYahooFantasy', () => {
     })
   })
 
-  describe('Network Performance Detection', () => {
-    let mockConnection: Record<string, unknown>
-
-    beforeEach(() => {
-      mockUseSession.mockReturnValue({
-        data: {
-          accessToken: 'test-access-token',
-          user: { name: 'Test User' },
-          expires: '2024-12-31',
-        },
-        status: 'authenticated',
-        update: jest.fn(),
-      })
-
-      // Mock navigator.connection
-      mockConnection = { effectiveType: '4g' }
-      Object.defineProperty(navigator, 'connection', {
-        value: mockConnection,
-        writable: true,
-        configurable: true,
-      })
-    })
-
-    afterEach(() => {
-      // Clean up navigator.connection mock
-      delete (navigator as unknown as Record<string, unknown>).connection
-    })
-
-    it('should detect slow connection and use reduced player limit', () => {
-      // Mock slow connection
-      mockConnection.effectiveType = '2g'
-      mockApiInstance.getMLBPlayersComprehensive.mockResolvedValue(mockPlayersSimple)
-
-      const { result } = renderHook(() => useYahooFantasy(), {
-        wrapper: createWrapper,
-      })
-
-      const { usePlayersComprehensive } = result.current
-      renderHook(() => 
-        usePlayersComprehensive({ fetchAll: true }), {
-        wrapper: createWrapper,
-      })
-
-      // Should still be enabled but with reduced maxPlayers limit
-      expect(mockApiInstance.getMLBPlayersComprehensive).toHaveBeenCalledWith({
-        playerType: 'ALL_BATTERS',
-        maxPlayers: 200, // Reduced limit for slow connections
-        statType: 'season',
-        seasonYear: 'current'
-      })
-    })
-
-    it('should use reduced player limit on slow-2g connection when fetchAll is true', () => {
-      // Mock slow connection
-      mockConnection.effectiveType = 'slow-2g'
-      mockApiInstance.getMLBPlayersComprehensive.mockResolvedValue(mockPlayersSimple)
-
-      const { result } = renderHook(() => useYahooFantasy(), {
-        wrapper: createWrapper,
-      })
-
-      const { usePlayersComprehensive } = result.current
-      renderHook(() => 
-        usePlayersComprehensive({ fetchAll: true }), {
-        wrapper: createWrapper,
-      })
-
-      // Should still be enabled but with reduced maxPlayers limit
-      expect(mockApiInstance.getMLBPlayersComprehensive).toHaveBeenCalledWith({
-        playerType: 'ALL_BATTERS',
-        maxPlayers: 200, // Reduced limit for slow connections
-        statType: 'season',
-        seasonYear: 'current'
-      })
-    })
-
-    it('should use fast connection defaults when navigator.connection is not available', async () => {
-      // Remove navigator.connection
-      delete (navigator as unknown as Record<string, unknown>).connection
-      mockApiInstance.getMLBPlayersComprehensive.mockResolvedValue(mockPlayersSimple)
-
-      const { result } = renderHook(() => useYahooFantasy(), {
-        wrapper: createWrapper,
-      })
-
-      const { usePlayersComprehensive } = result.current
-      const playersResult = renderHook(() => 
-        usePlayersComprehensive({ fetchAll: true }), {
-        wrapper: createWrapper,
-      })
-
-      await waitFor(() => {
-        expect(playersResult.result.current.data).toBeDefined()
-      })
-
-      // Should use fast connection defaults
-      expect(mockApiInstance.getMLBPlayersComprehensive).toHaveBeenCalledWith({
-        playerType: 'ALL_BATTERS',
-        maxPlayers: 500,
-        statType: 'season',
-        seasonYear: 'current'
-      })
-    })
-  })
 }) 

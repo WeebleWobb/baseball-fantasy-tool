@@ -4,7 +4,6 @@ import { YahooFantasyAPI } from '@/lib/yahoo-fantasy';
 import type { UsePlayersOptions } from '@/types/hooks';
 import type { YahooPlayerStats } from '@/types/yahoo-fantasy';
 import type { UsersResponse } from '@/lib/schemas';
-import { useMemo } from 'react';
 
 // Cache duration constants in milliseconds
 const CACHE_DURATIONS = {
@@ -14,34 +13,8 @@ const CACHE_DURATIONS = {
   WEEK: 7 * 24 * 60 * 60 * 1000,
 } as const;
 
-
-
-/**
- * Hook for network performance detection
- */
-function useNetworkPerformance(): boolean {
-  return useMemo(() => {
-    // Only check connection on client side
-    if (typeof window === 'undefined') {
-      return false; // Default to fast connection during SSR
-    }
-
-    // Check if we're on a slow connection
-    if ('connection' in navigator) {
-      const connection = (navigator as Record<string, unknown>).connection;
-      if (connection && typeof connection === 'object' && 'effectiveType' in connection) {
-        const effectiveType = connection.effectiveType;
-        // Consider 2G or slow-2g as slow connections
-        return effectiveType === '2g' || effectiveType === 'slow-2g';
-      }
-    }
-    return false; // Default to fast connection
-  }, []);
-}
-
 export function useYahooFantasy() {
   const { data: session } = useSession();
-  const isSlowConnection = useNetworkPerformance();
 
   // Handle token refresh errors
   if (session?.error === 'RefreshAccessTokenError') {
@@ -93,7 +66,6 @@ export function useYahooFantasy() {
       queryKey: ['players-comprehensive', playerType, statType, seasonYear],
       queryFn: () => api?.getMLBPlayersComprehensive({
         playerType,
-        maxPlayers: isSlowConnection ? 200 : 500,
         statType,
         seasonYear
       }),

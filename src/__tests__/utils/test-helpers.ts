@@ -104,3 +104,26 @@ export const createMockPlayerData = (overrides: Partial<{
   ...overrides
 });
 
+/**
+ * Create a mock File object for testing file uploads
+ * @param content - File content as string
+ * @param name - File name (default: 'test.csv')
+ * @param type - MIME type (default: 'text/csv')
+ * @param size - Optional size override
+ */
+export const createMockFile = (
+  content: string,
+  name = 'test.csv',
+  type = 'text/csv',
+  size?: number
+): File => {
+  const blob = new Blob([content], { type });
+  const file = new File([blob], name, { type });
+  if (size !== undefined) {
+    Object.defineProperty(file, 'size', { value: size });
+  }
+  // jsdom doesn't support file.text(), so we mock it
+  file.text = jest.fn().mockResolvedValue(content);
+  return file;
+};
+
