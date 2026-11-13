@@ -23,6 +23,7 @@ describe('AuthError Page', () => {
       forward: jest.fn(),
       refresh: jest.fn(),
       prefetch: jest.fn(),
+      bfcacheId: 'test-bfcache-id',
     } as ReturnType<typeof useRouter>)
     
     render(<AuthError />)
