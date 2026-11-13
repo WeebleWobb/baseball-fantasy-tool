@@ -7,7 +7,7 @@ import { z } from 'zod';
 
 const envSchema = z.object({
   // NextAuth
-  NEXTAUTH_URL: z.string().url(),
+  NEXTAUTH_URL: z.url(),
   NEXTAUTH_SECRET: z.string().min(1),
 
   // Yahoo OAuth
@@ -28,7 +28,7 @@ export function validateEnv(): Env {
   const result = envSchema.safeParse(process.env);
 
   if (!result.success) {
-    const errors = result.error.flatten().fieldErrors;
+    const errors = z.flattenError(result.error).fieldErrors;
     const missing = Object.entries(errors)
       .map(([key, msgs]) => `  ${key}: ${msgs?.join(', ')}`)
       .join('\n');
