@@ -20,7 +20,7 @@ describe('Auth Schemas', () => {
       expect(result.success).toBe(true);
     });
 
-    it('should allow additional fields with passthrough', () => {
+    it('should allow additional fields with loose', () => {
       const tokenWithExtra = {
         sub: 'user123',
         aud: 'client-id',

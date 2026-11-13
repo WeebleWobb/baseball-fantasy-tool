@@ -33,9 +33,9 @@ export const playerStatsContainerSchema = z.object({
     season: z.string().optional(),
     week: z.string().optional(),
     date: z.string().optional()
-  }).passthrough().optional(),
+  }).loose().optional(),
   stats: z.array(statEntrySchema)
-}).passthrough();
+}).loose();
 
 // Player name
 export const playerNameSchema = z.object({
@@ -48,34 +48,34 @@ export const playerNameSchema = z.object({
 
 // Player metadata item - various single-key objects or empty arrays
 export const playerMetadataItemSchema = z.union([
-  z.object({ player_key: z.string() }).passthrough(),
-  z.object({ player_id: z.string() }).passthrough(),
-  z.object({ name: playerNameSchema }).passthrough(),
-  z.object({ url: z.string() }).passthrough(),
-  z.object({ status: z.string(), status_full: z.string() }).passthrough(), // Inactive players
-  z.object({ editorial_player_key: z.string() }).passthrough(),
-  z.object({ editorial_team_key: z.string() }).passthrough(),
-  z.object({ editorial_team_full_name: z.string() }).passthrough(),
-  z.object({ editorial_team_abbr: z.string() }).passthrough(),
-  z.object({ editorial_team_url: z.string() }).passthrough(),
-  z.object({ display_position: z.string() }).passthrough(),
-  z.object({ position_type: z.string() }).passthrough(),
-  z.object({ uniform_number: z.string() }).passthrough(),
-  z.object({ headshot: z.unknown() }).passthrough(),
-  z.object({ eligible_positions: z.array(z.unknown()) }).passthrough(),
-  z.object({ eligible_positions_to_add: z.array(z.unknown()) }).passthrough(),
-  z.object({ is_keeper: z.unknown() }).passthrough(),
-  z.object({ is_undroppable: z.string() }).passthrough(),
-  z.object({ has_player_notes: z.number() }).passthrough(),
+  z.object({ player_key: z.string() }).loose(),
+  z.object({ player_id: z.string() }).loose(),
+  z.object({ name: playerNameSchema }).loose(),
+  z.object({ url: z.string() }).loose(),
+  z.object({ status: z.string(), status_full: z.string() }).loose(), // Inactive players
+  z.object({ editorial_player_key: z.string() }).loose(),
+  z.object({ editorial_team_key: z.string() }).loose(),
+  z.object({ editorial_team_full_name: z.string() }).loose(),
+  z.object({ editorial_team_abbr: z.string() }).loose(),
+  z.object({ editorial_team_url: z.string() }).loose(),
+  z.object({ display_position: z.string() }).loose(),
+  z.object({ position_type: z.string() }).loose(),
+  z.object({ uniform_number: z.string() }).loose(),
+  z.object({ headshot: z.unknown() }).loose(),
+  z.object({ eligible_positions: z.array(z.unknown()) }).loose(),
+  z.object({ eligible_positions_to_add: z.array(z.unknown()) }).loose(),
+  z.object({ is_keeper: z.unknown() }).loose(),
+  z.object({ is_undroppable: z.string() }).loose(),
+  z.object({ has_player_notes: z.number() }).loose(),
   z.array(z.unknown()),  // Empty arrays that appear in metadata
-  z.record(z.unknown())  // Catch-all for other objects
+  z.record(z.string(), z.unknown())  // Catch-all for other objects
 ]);
 
 // Player stats wrapper (second element of player tuple)
 export const playerStatsWrapperSchema = z.object({
   player_stats: playerStatsContainerSchema.optional(),
   player_advanced_stats: playerStatsContainerSchema.optional()
-}).passthrough();
+}).loose();
 
 // Full player entry - use min-length array to allow additional elements
 // Yahoo API returns varying array structures for different stat types
@@ -88,6 +88,7 @@ export const playerEntrySchema = z.object({
 
 // Players collection - object with numeric keys + count
 export const playersCollectionSchema = z.record(
+  z.string(),
   z.union([playerEntrySchema, z.number()])
 );
 
@@ -103,7 +104,7 @@ export const gameInfoSchema = z.object({
   is_registration_over: z.number(),
   is_game_over: z.number(),
   is_offseason: z.number()
-}).passthrough();
+}).loose();
 
 // Players wrapper (second element of game tuple)
 export const playersWrapperSchema = z.object({
@@ -122,7 +123,7 @@ export const playersResponseSchema = z.object({
     time: z.string().optional(),
     copyright: z.string().optional(),
     refresh_rate: z.string().optional()
-  }).passthrough()
+  }).loose()
 });
 
 export type PlayersResponse = z.infer<typeof playersResponseSchema>;

@@ -17,24 +17,25 @@ export const userProfileSchema = z.object({
   legal_jurisdiction: z.string().optional(),
   image_url: z.string(),
   unique_username: z.string().optional()
-}).passthrough();
+}).loose();
 
 // User entry - array with guid object and profile object
 export const userEntrySchema = z.object({
   user: z.array(
     z.union([
-      z.object({ guid: z.string() }).passthrough(),
-      z.object({ profile: userProfileSchema }).passthrough()
+      z.object({ guid: z.string() }).loose(),
+      z.object({ profile: userProfileSchema }).loose()
     ])
   ).min(1)
 });
 
 // Users collection - object with numeric keys + count
 export const usersCollectionSchema = z.record(
+  z.string(),
   z.union([userEntrySchema, z.number()])
 ).refine(
   (data) => typeof data.count === 'number',
-  { message: 'Users collection must have count field' }
+  { error: 'Users collection must have count field' }
 );
 
 // Full users response
@@ -46,7 +47,7 @@ export const usersResponseSchema = z.object({
     time: z.string().optional(),
     copyright: z.string().optional(),
     refresh_rate: z.string().optional()
-  }).passthrough()
+  }).loose()
 });
 
 export type UsersResponse = z.infer<typeof usersResponseSchema>;
