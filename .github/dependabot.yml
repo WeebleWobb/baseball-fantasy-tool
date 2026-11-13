@@ -5,27 +5,25 @@ updates:
     schedule:
       interval: "weekly"
       day: "monday"
+    # Skip releases younger than a week so a PR isn't replaced days later
+    # by the next patch of the same package.
+    cooldown:
+      default-days: 7
     groups:
-      eslint:
+      # One PR a week for every minor and patch update, production and dev.
+      # Majors still arrive as individual PRs.
+      minor-and-patch:
         patterns:
-          - "eslint"
-          - "eslint-*"
-          - "@eslint/*"
-      dev-dependencies:
-        dependency-type: "development"
-        exclude-patterns:
-          - "eslint"
-          - "eslint-*"
-          - "@eslint/*"
+          - "*"
         update-types:
           - "minor"
           - "patch"
-      production-dependencies:
-        dependency-type: "production"
-        update-types:
-          - "minor"
-          - "patch"
-    open-pull-requests-limit: 10
+      # Security fixes arrive together instead of one PR per package.
+      security:
+        applies-to: security-updates
+        patterns:
+          - "*"
+    open-pull-requests-limit: 5
     reviewers:
       - "WeebleWobb"
     ignore:
