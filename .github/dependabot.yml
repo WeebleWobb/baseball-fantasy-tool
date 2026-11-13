@@ -28,6 +28,14 @@ updates:
     open-pull-requests-limit: 10
     reviewers:
       - "WeebleWobb"
+    ignore:
+      # ESLint 10 is blocked until eslint-plugin-react supports it.
+      # Tracking: https://github.com/jsx-eslint/eslint-plugin-react/issues/3977
+      # The eslint-10-watch workflow opens an issue when this can be removed.
+      - dependency-name: "eslint"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@eslint/js"
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: "github-actions"
     directory: "/"

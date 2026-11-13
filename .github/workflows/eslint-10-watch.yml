@@ -1,0 +1,53 @@
+name: ESLint 10 Watch
+
+# Opens an issue once eslint-plugin-react's peer range accepts ESLint 10.
+# Delete this workflow and the eslint ignore in dependabot.yml after upgrading.
+# Tracking: https://github.com/jsx-eslint/eslint-plugin-react/issues/3977
+
+on:
+  schedule:
+    - cron: '0 13 * * 1' # Mondays 13:00 UTC
+  workflow_dispatch:
+
+permissions:
+  issues: write
+
+jobs:
+  check:
+    name: Check eslint-plugin-react peer range
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: '20.x'
+
+      - name: Check peer range and open issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          version=$(npm view eslint-plugin-react version)
+          range=$(npm view eslint-plugin-react peerDependencies.eslint)
+          echo "eslint-plugin-react $version peer eslint: $range"
+
+          if ! npx --yes semver@7.7.2 --range "$range" 10.0.0 > /dev/null; then
+            echo "ESLint 10 not supported yet."
+            exit 0
+          fi
+
+          title="ESLint 10 unblocked: eslint-plugin-react $version supports it"
+          if [ -n "$(gh issue list --state open --search "in:title ESLint 10 unblocked" --json number -q '.[].number')" ]; then
+            echo "Issue already open."
+            exit 0
+          fi
+
+          gh issue create --title "$title" --body "eslint-plugin-react $version declares \`peerDependencies.eslint: $range\`, which includes ESLint 10.
+
+          To upgrade:
+          1. Remove the \`eslint\` and \`@eslint/js\` ignore entries from \`.github/dependabot.yml\`.
+          2. Wait for Dependabot to open the eslint group PR, or bump \`eslint\`, \`@eslint/js\` and \`eslint-plugin-react\` by hand.
+          3. Confirm \`eslint-config-next\` also installs cleanly with plain \`npm install\` (no \`--force\`).
+          4. Delete \`.github/workflows/eslint-10-watch.yml\`.
+
+          Upstream tracking: https://github.com/jsx-eslint/eslint-plugin-react/issues/3977"
