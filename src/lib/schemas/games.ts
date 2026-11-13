@@ -23,7 +23,7 @@ export const gameDataSchema = z.object({
   is_game_over: z.number(),
   is_offseason: z.number(),
   alternate_start_deadline: z.string().optional()
-}).passthrough();
+}).loose();
 
 // Game wrapper - Yahoo returns game data in single-element array
 export const gameWrapperSchema = z.object({
@@ -32,10 +32,11 @@ export const gameWrapperSchema = z.object({
 
 // Games collection - object with numeric keys + count
 export const gamesCollectionSchema = z.record(
+  z.string(),
   z.union([gameWrapperSchema, z.number()])
 ).refine(
   (data) => typeof data.count === 'number',
-  { message: 'Games collection must have count field' }
+  { error: 'Games collection must have count field' }
 );
 
 // Full games response
@@ -47,7 +48,7 @@ export const gamesResponseSchema = z.object({
     time: z.string().optional(),
     copyright: z.string().optional(),
     refresh_rate: z.string().optional()
-  }).passthrough()
+  }).loose()
 });
 
 export type GamesResponse = z.infer<typeof gamesResponseSchema>;

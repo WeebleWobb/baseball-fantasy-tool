@@ -36,18 +36,18 @@ async getResourceName(params: ResourceParams): Promise<ResourceType> {
 ### 3. Create Zod Schema
 Location: `/lib/schemas/[resource-name].ts`
 
-Validate the Yahoo API response structure using `.passthrough()`:
+Validate the Yahoo API response structure using `.loose()`:
 ```typescript
 export const resourceSchema = z.object({
   // Match Yahoo's response structure
   field: z.string(),
-}).passthrough(); // Always use passthrough - Yahoo may add fields
+}).loose(); // Always use .loose() - Yahoo may add fields
 
 export const resourceResponseSchema = z.object({
   fantasy_content: z.object({
     resource: z.tuple([...])
-  }).passthrough()
-}).passthrough();
+  }).loose()
+}).loose();
 ```
 
 Export from `/lib/schemas/index.ts`
@@ -177,7 +177,7 @@ const avgStatId = BATTING_STATS.AVG; // Not hardcoded "60"
 After implementing new Yahoo API feature:
 - [ ] Endpoint verified in official documentation
 - [ ] API method added to YahooFantasyAPI class
-- [ ] Zod schema created with `.passthrough()` (never `.strict()`)
+- [ ] Zod schema created with `.loose()` (never `.strict()`)
 - [ ] Schema exported from `/lib/schemas/index.ts`
 - [ ] `requestWithValidation()` used for API call
 - [ ] Transformer function created if response needs reshaping

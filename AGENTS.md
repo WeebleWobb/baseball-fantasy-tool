@@ -68,13 +68,13 @@ Required environment variables: See `.env.example`
 
 ### Key Patterns
 
-**Always use `.passthrough()`** - Yahoo API may return additional fields not in our schemas:
+**Always use `.loose()`** - Yahoo API may return additional fields not in our schemas:
 ```typescript
 export const gameSchema = z.object({
   game_key: z.string(),
   game_id: z.string(),
   // ... known fields
-}).passthrough(); // Allow extra fields
+}).loose(); // Allow extra fields
 ```
 
 **Use `requestWithValidation()` for API calls**:

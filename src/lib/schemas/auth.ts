@@ -12,19 +12,19 @@ export const yahooIdTokenSchema = z.object({
   iss: z.string(),
   exp: z.number(),
   iat: z.number(),
-}).passthrough();
+}).loose();
 
 export type YahooIdToken = z.infer<typeof yahooIdTokenSchema>;
 
 // Token response from Yahoo OAuth (initial token or refresh)
-// Uses passthrough() to allow additional fields like id_token
+// Uses loose() to allow additional fields like id_token
 export const yahooTokenResponseSchema = z.object({
   access_token: z.string(),
   refresh_token: z.string().optional(),
   expires_in: z.number(),
   token_type: z.string().optional(),
   id_token: z.string().optional(),
-}).passthrough();
+}).loose();
 
 export type YahooTokenResponse = z.infer<typeof yahooTokenResponseSchema>;
 
@@ -32,7 +32,7 @@ export type YahooTokenResponse = z.infer<typeof yahooTokenResponseSchema>;
 export const yahooTokenErrorSchema = z.object({
   error: z.string(),
   error_description: z.string().optional(),
-}).passthrough();
+}).loose();
 
 export type YahooTokenError = z.infer<typeof yahooTokenErrorSchema>;
 

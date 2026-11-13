@@ -24,7 +24,7 @@ For complete project context, see [AGENTS.md](./AGENTS.md)
 ### Working with Yahoo Fantasy API
 1. **Always verify endpoint exists** in official docs first: https://developer.yahoo.com/fantasysports/guide/
 2. Add method to `YahooFantasyAPI` class in `/lib/yahoo-fantasy.ts`
-3. Create Zod schema in `/lib/schemas/` for the API response (use `.passthrough()` for permissive validation)
+3. Create Zod schema in `/lib/schemas/` for the API response (use `.loose()` for permissive validation)
 4. Use `requestWithValidation()` method to validate responses
 5. Add TanStack Query hook to `/hooks/use-yahoo-fantasy.ts`
 6. Use hook in component with proper loading/error states
@@ -43,7 +43,7 @@ For complete project context, see [AGENTS.md](./AGENTS.md)
 
 4. **Use Zod only for external data boundaries** - API responses, OAuth tokens, env vars. Use TypeScript interfaces for component props and internal logic
 
-5. **Zod schemas use `.passthrough()`** - Yahoo API may return additional fields; never use `.strict()`
+5. **Zod schemas use `.loose()`** - Yahoo API may return additional fields; never use `.strict()`
 
 ## Zod Schema Locations
 
