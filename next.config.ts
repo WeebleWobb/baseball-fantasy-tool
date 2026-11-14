@@ -2,7 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   images: {
-    domains: ['s.yimg.com'],
+    remotePatterns: [{ protocol: 'https', hostname: 's.yimg.com' }],
   },
   async headers() {
     return [
