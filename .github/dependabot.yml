@@ -34,6 +34,10 @@ updates:
         update-types: ["version-update:semver-major"]
       - dependency-name: "@eslint/js"
         update-types: ["version-update:semver-major"]
+      # TypeScript 7 is blocked until typescript-eslint widens its peer range
+      # (currently ">=4.8.4 <6.1.0"); eslint-config-next depends on it too.
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: "github-actions"
     directory: "/"

@@ -1,0 +1,54 @@
+name: TypeScript 7 Watch
+
+# Opens an issue once typescript-eslint's peer range accepts TypeScript 7.
+# Delete this workflow and the typescript ignore in dependabot.yml after upgrading.
+# Tracking: https://github.com/typescript-eslint/typescript-eslint/issues/10940
+
+on:
+  schedule:
+    - cron: '0 13 * * 1' # Mondays 13:00 UTC
+  workflow_dispatch:
+
+permissions:
+  issues: write
+
+jobs:
+  check:
+    name: Check typescript-eslint peer range
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: '24.x'
+
+      - name: Check peer range and open issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          version=$(npm view typescript-eslint version)
+          range=$(npm view typescript-eslint peerDependencies.typescript)
+          echo "typescript-eslint $version peer typescript: $range"
+
+          if ! npx --yes semver@7.7.2 --range "$range" 7.0.0 > /dev/null; then
+            echo "TypeScript 7 not supported yet."
+            exit 0
+          fi
+
+          title="TypeScript 7 unblocked: typescript-eslint $version supports it"
+          if [ -n "$(gh issue list --state open --search "in:title TypeScript 7 unblocked" --json number -q '.[].number')" ]; then
+            echo "Issue already open."
+            exit 0
+          fi
+
+          gh issue create --title "$title" --body "typescript-eslint $version declares \`peerDependencies.typescript: $range\`, which includes TypeScript 7.
+
+          To upgrade:
+          1. Remove the \`typescript\` ignore entry from \`.github/dependabot.yml\`.
+          2. Wait for Dependabot to open the typescript PR, or bump \`typescript\` and \`typescript-eslint\` by hand.
+          3. Confirm plain \`npm ci\` installs cleanly (\`eslint-config-next\` pulls in \`typescript-eslint\` too).
+          4. Confirm \`npm run lint\` and \`npm run build\` pass, since Next.js runs its own type check against the \`typescript\` package.
+          5. Delete \`.github/workflows/typescript-7-watch.yml\`.
+
+          Upstream tracking: https://github.com/typescript-eslint/typescript-eslint/issues/10940"
